@@ -1,0 +1,21 @@
+{
+  "name": "mte-scudo-research-desk",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "python3 -m http.server 4317 --bind 127.0.0.1 --directory dist",
+    "index": "python3 scripts/index_sources.py && node scripts/format_sources.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "check": "node --check dist/app.mjs && node --check dist/core.mjs && node --check dist/db.mjs && node --check dist/formatting.mjs && node --check dist/pdf-structure.mjs && node --check dist/imports.mjs && node --check server/auth.mjs && node --check server/main.mjs && node --check api/index.mjs && node --check hosting/vercel/login.mjs && node --check hosting/vercel/access.mjs",
+    "format-sources": "node scripts/format_sources.mjs",
+    "build:vercel": "node scripts/build-vercel.mjs"
+  },
+  "devDependencies": {
+    "fake-indexeddb": "^6.2.5",
+    "jsdom": "^29.1.1"
+  },
+  "engines": {
+    "node": "24.x"
+  }
+}

@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#203d35"><meta name="description" content="A personal research library for LLM, MTE, and Scudo notes, sources, and meetings."><title>Research Desk · MTE / Scudo</title><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="stylesheet" href="fonts.css"><link rel="stylesheet" href="style.css"></head>
+<body>
+<a class="skip" href="#reader">Skip to document</a>
+<div class="app">
+<aside class="sidebar" aria-label="Library navigation">
+ <a class="brand" href="./"><svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M4 5h10l3 3 3-3h8v22H18l-1-2-1 2H4zM17 8v17M8 11h5M8 16h5M21 11h3M21 16h3" stroke="currentColor" stroke-width="1.5"/></svg><span>MTE / Scudo<small>Research desk</small></span></a>
+ <nav id="views"></nav>
+ <div class="sidebar-section">Topics</div><nav id="topics" aria-label="Topics"></nav>
+ <div class="sidebar-bottom"><button id="backup" class="sidebar-action">Export backup <span aria-hidden="true">↗</span></button><button id="import-backup" class="sidebar-action">Restore backup</button><p>Personal workspace<br><span id="storage-label">Saved in this browser</span></p></div>
+</aside>
+<main>
+ <header class="topbar"><div class="location">Your research, in one place.</div><div class="top-actions"><button id="import" class="button secondary">Import files</button><button id="new-note" class="button primary">New note <span aria-hidden="true">+</span></button></div></header>
+ <section class="workspace-head"><div><h1 id="view-title">Library</h1><p id="view-description">Follow a thread. Find your source. Pick up where you left off.</p></div><button id="export-brief" class="button secondary" hidden>Export meeting brief</button></section>
+ <div class="searchbar"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><input id="search" type="search" placeholder="Search notes, concepts, or a phrase inside a PDF…" aria-label="Search all research"><kbd>/</kbd></div>
+ <div class="library-tools"><div class="segmented" aria-label="Organize library"><button id="by-topic" aria-pressed="true">By topic</button><button id="by-date" aria-pressed="false">By date</button></div><label class="type-filter">Type <select id="kind"><option value="">All types</option></select></label><span id="result-count" role="status"></span></div>
+ <div class="split"><section class="entry-list" aria-label="Research entries" id="entries"><p class="loading">Opening your library…</p></section><article id="reader" class="reader" tabindex="-1"><div class="reader-empty">Select a document to start reading.</div></article></div>
+</main></div>
+<div id="notice" role="status" hidden></div>
+<input id="file-input" type="file" accept=".pdf,.md,.txt" multiple hidden><input id="backup-input" type="file" accept=".json" hidden>
+<dialog id="confirm-dialog"><form method="dialog"><h2 id="confirm-title">Remove this entry?</h2><p>The original repository files will remain intact. You can restore this entry from a backup.</p><div class="form-actions"><button value="cancel" class="button secondary">Keep entry</button><button value="remove" class="button danger">Remove entry</button></div></form></dialog>
+<script type="module" src="app.mjs"></script>
+</body></html>

@@ -1,0 +1,7 @@
+.env
+.env.*
+.openai/
+node_modules/
+vercel-public/
+tests/
+.sites-checkout/

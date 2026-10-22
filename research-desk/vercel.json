@@ -1,0 +1,18 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "buildCommand": "npm run build:vercel",
+  "outputDirectory": "vercel-public",
+  "functions": {"api/index.mjs": {"includeFiles": "dist/{library.json,sources/**}"}},
+  "rewrites": [
+    {"source": "/api/password/:passwordAction", "destination": "/api/index?passwordAction=:passwordAction"},
+    {"source": "/api/config", "destination": "/api/index?action=config"},
+    {"source": "/library.json", "destination": "/api/index?resource=library.json"},
+    {"source": "/sources/:name", "destination": "/api/index?resource=sources/:name"}
+  ],
+  "headers": [{"source": "/(.*)", "headers": [
+    {"key": "X-Content-Type-Options", "value": "nosniff"},
+    {"key": "Referrer-Policy", "value": "strict-origin-when-cross-origin"},
+    {"key": "X-Frame-Options", "value": "DENY"}
+  ]}]
+}

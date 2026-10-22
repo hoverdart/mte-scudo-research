@@ -1,0 +1,17 @@
+research-desk/node_modules/
+research-desk/.sites-checkout/
+research-desk/.sites-checkout-*/
+research-desk/.sites-runtime/
+research-desk/.sites-local/
+research-desk/.openai/*.local.*
+.DS_Store
+
+research-desk/.vercel/
+
+research-desk/vercel-public/
+
+research-desk/.env
+
+research-desk/.env.local
+
+research-desk/.env.*.local
