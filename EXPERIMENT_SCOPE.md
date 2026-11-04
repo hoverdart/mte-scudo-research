@@ -217,3 +217,11 @@ is allowed only in its isolated detector command. Preserve evidence and review
 before rerunning. Do not expand into corruption characterization, allocator
 reuse strategies, target objects, bypasses or escalation. Treat any unexpected
 crash as a defensive test result, never as proof of exploitability.
+
+
+The analysis prompt now uses version 2: at most 300 words, four numbered
+sections, no code blocks or tables, exhaustive fallback conditions, caller
+preconditions and explicit limits on unmeasured claims. This keeps the existing
+output ceiling while reducing verbose generated test code. Version and prompt
+hash are recorded; changed prompts are separate experiments, not matched model
+comparisons. Offline tests also verify truncation is preserved and fails closed.

@@ -12,7 +12,7 @@ import { spawnSync } from 'node:child_process';
 
 // A preload intercepts fetch: these tests cannot reach the paid endpoint.
 function analyze(env, status = 200) {
-  const preload = `globalThis.fetch = async (_url, options) => { if (process.env.RESEARCH_API_PROVIDER === 'openrouter' && (_url !== 'https://openrouter.ai/api/v1/chat/completions' || options.headers.Authorization !== 'Bearer offline-router')) throw Error('wrong routing'); const b = JSON.parse(options.body); if (b.max_tokens !== 700) throw Error('wrong cap'); return { ok: ${status === 200}, status: ${status}, json: async () => process.env.RESEARCH_API_PROVIDER === 'openrouter' ? ({choices:[{message:{content:'offline router'},finish_reason:'stop'}],usage:{prompt_tokens:1,completion_tokens:1}}) : ({ content: [{text:'offline response'}], usage:{input_tokens:1,output_tokens:1}, stop_reason:'end_turn' }) }; };`;
+  const preload = `globalThis.fetch = async (_url, options) => { if (process.env.RESEARCH_API_PROVIDER === 'openrouter' && (_url !== 'https://openrouter.ai/api/v1/chat/completions' || options.headers.Authorization !== 'Bearer offline-router')) throw Error('wrong routing'); const b = JSON.parse(options.body); if (b.max_tokens !== 700) throw Error('wrong cap'); if (!b.messages[0].content.includes('at most 300 words') || !b.messages[0].content.includes('No code blocks')) throw Error('missing concise format'); return { ok: ${status === 200}, status: ${status}, json: async () => process.env.RESEARCH_API_PROVIDER === 'openrouter' ? ({choices:[{message:{content:'offline router'},finish_reason:process.env.OFFLINE_FINISH || 'stop'}],usage:{prompt_tokens:1,completion_tokens:1}}) : ({ content: [{text:'offline response'}], usage:{input_tokens:1,output_tokens:1}, stop_reason:'end_turn' }) }; };`;
   return spawnSync(process.execPath, ['--import', `data:text/javascript,${encodeURIComponent(preload)}`, resolve('scripts/analyze-path.mjs'), 'fixtures/toy_path.c'], {
     cwd: scratch, encoding: 'utf8', env: { ...process.env, RESEARCH_API_PROVIDER: 'anthropic', ANTHROPIC_API_KEY: 'offline-placeholder', ANTHROPIC_MODEL: 'offline-model', ANTHROPIC_MAX_TOKENS: '700', ALLOW_LOCAL_RESEARCH_API: '0', ...env }, timeout: 5000,
   });
@@ -56,4 +56,14 @@ test('existing request lock blocks another request', async () => {
   await writeFile(lock, 'offline test');
   try { assert.equal(analyze({ALLOW_LOCAL_RESEARCH_API:'1'}).status, 2); }
   finally { await unlink(lock); }
+});
+
+test('token truncation saves partial evidence and returns failure without retry', async () => {
+  const result = analyze({ALLOW_LOCAL_RESEARCH_API:'1', RESEARCH_API_PROVIDER:'openrouter', OPENROUTER_API_KEY:'offline-router', OPENROUTER_MODEL:'anthropic/offline', OFFLINE_FINISH:'length'});
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /token cap/);
+  const record = JSON.parse(await readFile(join(scratch, 'artifacts/analysis.json'), 'utf8'));
+  assert.equal(record.stopReason, 'length');
+  assert.equal(record.promptVersion, 2);
+  assert.match(record.promptSha256, /^[a-f0-9]{64}$/);
 });

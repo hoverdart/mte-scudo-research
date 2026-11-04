@@ -45,7 +45,15 @@ if (!model || !Number.isInteger(max_tokens) || max_tokens < 1 || max_tokens > 10
   console.error('Set an explicit provider model and integer ANTHROPIC_MAX_TOKENS between 1 and 1000.');
   process.exit(2);
 }
-const prompt = `Analyze this toy/local program as a defensive execution-path exercise. Return: (1) entry points and reachable functions, (2) inputs needed to reach each path, (3) suggested logging/assertions/sanitizers, and (4) safe regression tests. Do not provide exploit steps, payloads, corrupted-object layouts, privilege escalation, sandbox bypass, or targeting of operating-system/security objects. If the code is not clearly a toy/local fixture, say so and stop.\n\nSOURCE:\n${source}`;
+const prompt = `Analyze this toy/local C program as a defensive execution-path exercise. Answer in at most 300 words, in four numbered sections. No code blocks, implementation code, or tables.
+1. Identify entry points and the reachable call graph.
+2. Give exhaustive conditions for each return value, including every fallback case and short-circuit guard. Give minimal valid example inputs; distinguish return outcomes from execution paths.
+3. State the caller's buffer-validity contract and what assertions cannot establish. Suggest useful logging without raw addresses, sanitizers with platform caveats, and measured branch coverage. Do not claim measurements you have not run.
+4. List a compact deterministic regression set and expected results. Avoid repetitive examples and tautological assertions.
+Do not provide exploit steps, payloads, corrupted-object layouts, privilege escalation, sandbox bypass, or targeting of operating-system/security objects. If the code is not clearly a toy/local fixture, say so and stop.
+
+SOURCE:
+${source}`;
 
 await fs.mkdir('artifacts', { recursive: true });
 let lock;
@@ -57,7 +65,7 @@ const record = {
   sourceSha256: createHash('sha256').update(source).digest('hex'),
   promptSha256: createHash('sha256').update(prompt).digest('hex'),
   sourceRevision: spawnSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).stdout?.trim(),
-  rubricVersion: 1, status: 'started',
+  rubricVersion: 1, promptVersion: 2, status: 'started',
 };
 try {
   await fs.mkdir('artifacts/analyses', { recursive: true });
