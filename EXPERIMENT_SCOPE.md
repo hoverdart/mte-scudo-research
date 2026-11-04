@@ -83,3 +83,16 @@ and review before continuing. Stop before any upstream build until written
 approval identifies a patched revision, local build configuration, public safe
 regression inputs, resource limits and success criteria. No vulnerable-version
 comparison or live-device work is authorized by this baseline.
+
+## OpenRouter or direct Anthropic
+
+The analysis script supports both providers, selected explicitly with
+`RESEARCH_API_PROVIDER=anthropic` (default) or `openrouter` in the local `.env`.
+For OpenRouter, fill `OPENROUTER_API_KEY` and `OPENROUTER_MODEL` (the exact model
+ID including its provider prefix). For direct Anthropic, fill
+`ANTHROPIC_API_KEY` and `ANTHROPIC_MODEL`. Do not interchange their keys.
+`ANTHROPIC_MAX_TOKENS` is the shared output cap for either route.
+OpenRouter provider fallbacks are disabled. Neither route retries automatically.
+Before opting in, set a small key spending limit in your provider dashboard;
+the script cannot enforce an account-wide dollar budget. Start with a $1 key
+limit rather than exposing the whole $50 balance to this experiment.
