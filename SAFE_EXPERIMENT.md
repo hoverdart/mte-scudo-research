@@ -22,3 +22,15 @@ The requested safe interpretation is therefore: map execution paths and measure 
 ## Approval gates and stop conditions
 
 Do not connect this harness to a production device, privileged service, kernel target, or unpatched third-party binary. Stop if a test begins producing a working overwrite, control-flow redirection, permission change, sandbox escape, or a reproducible crash outside the intended toy fixture. Preserve the input and logs, then review with the project owner.
+
+
+## Implemented defensive extensions
+
+The user approved the defensive extensions on November 3, 2026, excluding
+corruption-primitive characterization. See `EXPERIMENT_SCOPE.md` for exact commands,
+revision pin, expected artifacts, resource bounds and stop rules. The harness now
+measures LLVM branch coverage, traces a real safe allocation lifetime, checks an
+arithmetic-only UBSan positive control, and runs a pinned maintained dav1d build
+with header tests, lifecycle assertions and one generated ordinary black frame.
+The model workflow archives bounded single requests and supports offline human
+comparison; no paid capability assessment or MTE/Scudo result is claimed.

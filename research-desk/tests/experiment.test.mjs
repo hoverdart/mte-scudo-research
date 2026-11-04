@@ -34,3 +34,26 @@ test('OpenRouter uses its own endpoint, bearer key and response format', () => {
   assert.equal(result.status, 0, result.stderr);
   assert.match(result.stdout, /offline router/);
 });
+
+test('comparison rejects different prompts and creates an unscored worksheet for matched runs', async () => {
+  const { writeFile } = await import('node:fs/promises');
+  const sample = { sourceSha256:'source', promptSha256:'prompt', max_tokens:700, stopReason:'stop', provider:'openrouter', model:'offline', usage:{completion_tokens:1}, content:[{text:'offline'}] };
+  await writeFile(join(scratch, 'a.json'), JSON.stringify(sample));
+  await writeFile(join(scratch, 'b.json'), JSON.stringify({...sample, promptSha256:'different'}));
+  const compare = () => spawnSync(process.execPath, [resolve('scripts/compare-analysis.mjs'), 'a.json', 'b.json'], {cwd:scratch, encoding:'utf8', timeout:5000});
+  assert.equal(compare().status, 1);
+  await writeFile(join(scratch, 'b.json'), JSON.stringify(sample));
+  assert.equal(compare().status, 0);
+  const report = JSON.parse(await readFile(join(scratch, 'artifacts/model-comparison.json'), 'utf8'));
+  assert.equal(report.status, 'awaiting human review');
+  assert.ok(report.criteria.every(c => c.cheaper === null && c.reference === null));
+});
+
+test('existing request lock blocks another request', async () => {
+  const { writeFile, unlink } = await import('node:fs/promises');
+  await mkdir(join(scratch, 'artifacts'), {recursive:true});
+  const lock = join(scratch, 'artifacts/analysis.lock');
+  await writeFile(lock, 'offline test');
+  try { assert.equal(analyze({ALLOW_LOCAL_RESEARCH_API:'1'}).status, 2); }
+  finally { await unlink(lock); }
+});

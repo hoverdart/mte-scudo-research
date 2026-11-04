@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 import fs from 'node:fs/promises';
+import { createHash, randomUUID } from 'node:crypto';
+import { spawnSync } from 'node:child_process';
 
 // Minimal dotenv loader so the user can keep credentials in an untracked .env
 // without adding a runtime dependency.
@@ -45,36 +47,60 @@ if (!model || !Number.isInteger(max_tokens) || max_tokens < 1 || max_tokens > 10
 }
 const prompt = `Analyze this toy/local program as a defensive execution-path exercise. Return: (1) entry points and reachable functions, (2) inputs needed to reach each path, (3) suggested logging/assertions/sanitizers, and (4) safe regression tests. Do not provide exploit steps, payloads, corrupted-object layouts, privilege escalation, sandbox bypass, or targeting of operating-system/security objects. If the code is not clearly a toy/local fixture, say so and stop.\n\nSOURCE:\n${source}`;
 
-const response = await fetch(openrouter ? 'https://openrouter.ai/api/v1/chat/completions' : 'https://api.anthropic.com/v1/messages', {
-  method: 'POST',
-  signal: AbortSignal.timeout(30000),
-  redirect: 'error',
-  headers: {
-    'content-type': 'application/json',
-    ...(openrouter ? { Authorization: `Bearer ${key}` } : { 'x-api-key': key, 'anthropic-version': '2023-06-01' }),
-  },
-  body: JSON.stringify({ model, max_tokens, temperature: 0, ...(openrouter ? { provider: { allow_fallbacks: false } } : {}), messages: [{ role: 'user', content: prompt }] }),
-});
-const body = await response.json();
-if (!response.ok || body.error) {
-  console.error(`API request failed (HTTP ${response.status}); no automatic retry.`);
-  process.exit(1);
-}
-const content = openrouter ? [{ type: 'text', text: body.choices?.[0]?.message?.content || '' }] : body.content;
-const stopReason = openrouter ? body.choices?.[0]?.finish_reason : body.stop_reason;
-if (!Array.isArray(content) || !content.some(part => typeof part.text === 'string' && part.text.length)) {
-  console.error('API returned no text; stop and review before another request.');
-  process.exit(1);
-}
 await fs.mkdir('artifacts', { recursive: true });
-await fs.writeFile('artifacts/analysis.json', JSON.stringify({
+let lock;
+try { lock = await fs.open('artifacts/analysis.lock', 'wx', 0o600); }
+catch { console.error('Another request may be running; inspect artifacts/analysis.lock before continuing.'); process.exit(2); }
+const archive = `artifacts/analyses/${randomUUID()}.json`;
+const record = {
   capturedAt: new Date().toISOString(), provider, model, max_tokens,
-  sourceSha256: (await import('node:crypto')).createHash('sha256').update(source).digest('hex'),
-  usage: body.usage, stopReason, content,
-}, null, 2) + '\n');
-console.log(content.map(part => part.text || '').join('\n'));
+  sourceSha256: createHash('sha256').update(source).digest('hex'),
+  promptSha256: createHash('sha256').update(prompt).digest('hex'),
+  sourceRevision: spawnSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).stdout?.trim(),
+  rubricVersion: 1, status: 'started',
+};
+try {
+  await fs.mkdir('artifacts/analyses', { recursive: true });
+  await fs.writeFile(archive, JSON.stringify(record, null, 2) + '\n');
+  const response = await fetch(openrouter ? 'https://openrouter.ai/api/v1/chat/completions' : 'https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    signal: AbortSignal.timeout(30000),
+    redirect: 'error',
+    headers: {
+      'content-type': 'application/json',
+      ...(openrouter ? { Authorization: `Bearer ${key}` } : { 'x-api-key': key, 'anthropic-version': '2023-06-01' }),
+    },
+    body: JSON.stringify({ model, max_tokens, temperature: 0, ...(openrouter ? { provider: { allow_fallbacks: false } } : {}), messages: [{ role: 'user', content: prompt }] }),
+  });
+  record.httpStatus = response.status;
+  const body = await response.json();
+  if (!response.ok || body.error) {
+    console.error(`API request failed (HTTP ${response.status}); no automatic retry.`);
+    throw new Error('Analysis stopped; no retry performed.');
+  }
+  const content = openrouter ? [{ type: 'text', text: body.choices?.[0]?.message?.content || '' }] : body.content;
+  const stopReason = openrouter ? body.choices?.[0]?.finish_reason : body.stop_reason;
+  if (!Array.isArray(content) || !content.some(part => typeof part.text === 'string' && part.text.length)) {
+    console.error('API returned no text; stop and review before another request.');
+    throw new Error('Analysis stopped; no retry performed.');
+  }
+  Object.assign(record, { status: 'completed', usage: body.usage, stopReason, content });
+  const serialized = JSON.stringify(record, null, 2) + '\n';
+  await fs.writeFile(archive, serialized);
+  await fs.writeFile('artifacts/analysis.json', serialized);
+  console.log(content.map(part => part.text || '').join('\n'));
 
-if (['max_tokens', 'length'].includes(stopReason)) {
-  console.error('Response reached the token cap; review the saved partial result before another request.');
+  if (['max_tokens', 'length'].includes(stopReason)) {
+    console.error('Response reached the token cap; review the saved partial result before another request.');
+    process.exitCode = 1;
+  }
+} catch {
+  record.status = 'failed';
+  record.note = 'No retry. Charges may have occurred; review provider activity.';
+  await fs.writeFile(archive, JSON.stringify(record, null, 2) + '\n').catch(() => {});
+  console.error('Request or response processing failed; inspect saved evidence before another call. No retry performed.');
   process.exitCode = 1;
+} finally {
+  await lock.close();
+  await fs.unlink('artifacts/analysis.lock');
 }

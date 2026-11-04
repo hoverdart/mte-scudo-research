@@ -7,11 +7,16 @@
     "start": "python3 -m http.server 4317 --bind 127.0.0.1 --directory dist",
     "index": "python3 scripts/index_sources.py && node scripts/format_sources.mjs",
     "test": "node --test tests/*.test.mjs",
-    "check": "node --check scripts/analyze-path.mjs && node --check scripts/run-experiment.mjs && node --check scripts/synthetic-memory-lab.mjs && node --check dist/app.mjs && node --check dist/core.mjs && node --check dist/db.mjs && node --check dist/formatting.mjs && node --check dist/pdf-structure.mjs && node --check dist/imports.mjs && node --check server/auth.mjs && node --check server/main.mjs && node --check api/index.mjs && node --check hosting/vercel/login.mjs && node --check hosting/vercel/access.mjs",
+    "check": "node --check scripts/compare-analysis.mjs && node --check scripts/study-dav1d.mjs && node --check scripts/observe.mjs && node --check scripts/analyze-path.mjs && node --check scripts/run-experiment.mjs && node --check scripts/synthetic-memory-lab.mjs && node --check dist/app.mjs && node --check dist/core.mjs && node --check dist/db.mjs && node --check dist/formatting.mjs && node --check dist/pdf-structure.mjs && node --check dist/imports.mjs && node --check server/auth.mjs && node --check server/main.mjs && node --check api/index.mjs && node --check hosting/vercel/login.mjs && node --check hosting/vercel/access.mjs",
     "format-sources": "node scripts/format_sources.mjs",
     "experiment": "node scripts/run-experiment.mjs",
     "analyze-path": "node scripts/analyze-path.mjs fixtures/toy_path.c",
-    "build:vercel": "node scripts/build-vercel.mjs"
+    "build:vercel": "node scripts/build-vercel.mjs",
+    "experiment:coverage": "node scripts/observe.mjs coverage",
+    "experiment:lifetime": "node scripts/observe.mjs lifetime",
+    "experiment:detectors": "node scripts/observe.mjs detectors",
+    "experiment:dav1d": "node scripts/study-dav1d.mjs",
+    "compare-analysis": "node scripts/compare-analysis.mjs"
   },
   "devDependencies": {
     "fake-indexeddb": "^6.2.5",
