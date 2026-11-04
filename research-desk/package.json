@@ -7,7 +7,7 @@
     "start": "python3 -m http.server 4317 --bind 127.0.0.1 --directory dist",
     "index": "python3 scripts/index_sources.py && node scripts/format_sources.mjs",
     "test": "node --test tests/*.test.mjs",
-    "check": "node --check scripts/restore-study.mjs && node --check scripts/report-study.mjs && node --check scripts/study-skia.mjs && node --check scripts/benchmark.mjs && node --check scripts/benchmark-core.mjs && node --check scripts/cost-ledger.mjs && node --check scripts/compare-analysis.mjs && node --check scripts/study-dav1d.mjs && node --check scripts/observe.mjs && node --check scripts/analyze-path.mjs && node --check scripts/run-experiment.mjs && node --check scripts/synthetic-memory-lab.mjs && node --check dist/app.mjs && node --check dist/core.mjs && node --check dist/db.mjs && node --check dist/formatting.mjs && node --check dist/pdf-structure.mjs && node --check dist/imports.mjs && node --check server/auth.mjs && node --check server/main.mjs && node --check api/index.mjs && node --check hosting/vercel/login.mjs && node --check hosting/vercel/access.mjs",
+    "check": "node --check scripts/report-expansion.mjs && node --check scripts/coverage-dav1d.mjs && node --check scripts/coverage-skia.mjs && node --check scripts/coverage-summary.mjs && node --check scripts/observe-allocator.mjs && node --check scripts/prepare-upstream-task.mjs && node --check scripts/request-upstream-task.mjs && node --check scripts/upstream-score.mjs && node --check scripts/query-paths.mjs && node --check scripts/restore-study.mjs && node --check scripts/report-study.mjs && node --check scripts/study-skia.mjs && node --check scripts/benchmark.mjs && node --check scripts/benchmark-core.mjs && node --check scripts/cost-ledger.mjs && node --check scripts/compare-analysis.mjs && node --check scripts/study-dav1d.mjs && node --check scripts/observe.mjs && node --check scripts/analyze-path.mjs && node --check scripts/run-experiment.mjs && node --check scripts/synthetic-memory-lab.mjs && node --check dist/app.mjs && node --check dist/core.mjs && node --check dist/db.mjs && node --check dist/formatting.mjs && node --check dist/pdf-structure.mjs && node --check dist/imports.mjs && node --check server/auth.mjs && node --check server/main.mjs && node --check api/index.mjs && node --check hosting/vercel/login.mjs && node --check hosting/vercel/access.mjs",
     "format-sources": "node scripts/format_sources.mjs",
     "experiment": "node scripts/run-experiment.mjs",
     "analyze-path": "node scripts/analyze-path.mjs fixtures/toy_path.c",
@@ -24,7 +24,15 @@
     "experiment:skia": "node scripts/study-skia.mjs",
     "prepare:skia": "python3 scripts/prepare-skia.py",
     "study:report": "node scripts/report-study.mjs",
-    "study:restore": "node scripts/restore-study.mjs"
+    "study:restore": "node scripts/restore-study.mjs",
+    "paths:dav1d": "node scripts/coverage-dav1d.mjs",
+    "paths:skia": "node scripts/coverage-skia.mjs",
+    "paths:list": "node scripts/query-paths.mjs",
+    "upstream:prepare": "node scripts/prepare-upstream-task.mjs",
+    "upstream:request": "node scripts/request-upstream-task.mjs",
+    "allocator:prepare": "docker build -f config/scudo.Dockerfile -t mte-scudo-research/scudo-local:pilot config",
+    "allocator:observe": "node scripts/observe-allocator.mjs",
+    "expansion:report": "node scripts/report-expansion.mjs"
   },
   "devDependencies": {
     "fake-indexeddb": "^6.2.5",

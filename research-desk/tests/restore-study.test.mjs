@@ -17,6 +17,12 @@ test('fresh-clone redacted evidence restores offline, is idempotent, and rejects
     assert.equal(ledger.requestCount,original.length);
     assert.equal(ledger.reportedCostUSD,Number(original.reduce((s,r)=>s+r.usage.cost,0).toFixed(12)));
     assert.equal(run().status,0);
+    await mkdir(join(scratch,'docs/expansion'),{recursive:true});
+    await copyFile('docs/expansion/results.json',join(scratch,'docs/expansion/results.json'));
+    assert.equal(run().status,0);
+    const expanded=JSON.parse(await readFile(join(scratch,'artifacts/cost-ledger.json'),'utf8'));
+    const extra=JSON.parse(await readFile('docs/expansion/results.json','utf8')).upstream.requests;
+    assert.equal(expanded.requestCount,original.length+extra.length);
     const archive=join(scratch,'artifacts/analyses',original[0].archive);
     const record=JSON.parse(await readFile(archive,'utf8'));record.model='tampered';await writeFile(archive,JSON.stringify(record));
     assert.equal(run().status,1);

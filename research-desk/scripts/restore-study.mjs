@@ -5,6 +5,7 @@ import { resolve } from 'node:path';
 import { root, hash } from './benchmark-core.mjs';
 import { updateLedger } from './cost-ledger.mjs';
 const records=JSON.parse(await readFile(resolve(root,'docs/results/requests.json'),'utf8'));
+try {const expansion=JSON.parse(await readFile(resolve(root,'docs/expansion/results.json'),'utf8'));records.push(...expansion.upstream.requests);} catch(e){if(e.code!=='ENOENT')throw e;}
 const directory=resolve(root,'artifacts/analyses');await mkdir(directory,{recursive:true});
 let restored=0;
 for(const r of records){

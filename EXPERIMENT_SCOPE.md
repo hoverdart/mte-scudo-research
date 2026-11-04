@@ -32,7 +32,7 @@ branch coverage after an explicitly labeled fence-only format normalization.
   encode/decode round trips, each repeated twice under ASan/UBSan. Minimal build
   excludes fonts, GPU paths, PartitionAlloc and unrelated codecs; upstream
   sanitizer suppressions apply.
-- Ten model requests total, including the earlier prose trials. Provider-reported
+- Initial pilot: ten model requests, including the earlier prose trials. Provider-reported
   cumulative harness cost: $0.053378. No unknown-cost requests. This is not the
   key balance and excludes other users or billing fees.
 
@@ -129,3 +129,13 @@ security outcomes, library-wide coverage or MTE/Scudo behavior. A future MTE/Scu
 study needs a supported local userspace environment, pinned allocator/toolchain,
 and evidence that the intended instrumentation is active. It does not inherit
 permission for live devices or any excluded exploit work.
+
+
+## Three-track expansion
+
+The November 4 expansion separately measures real dav1d/Skia coverage, model
+predictions on an actual upstream API driver, and safe Linux Scudo observability
+with a read-only MTE capability probe. See
+[the expansion report](research-desk/docs/expansion/REPORT.md) and
+[its protocol](research-desk/docs/expansion/PROTOCOL.md). The historical pilot
+cost above is retained; `npm run costs` reports current cumulative usage.

@@ -3,12 +3,14 @@
 import { readFile, readdir, writeFile, mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fixtures, root, hash } from './benchmark-core.mjs';
-import { updateLedger } from './cost-ledger.mjs';
+import { updateLedger, summarizeCosts } from './cost-ledger.mjs';
 const artifacts=resolve(root,'artifacts');
 const output=resolve(root,'docs/results');
 const read=async path=>JSON.parse(await readFile(resolve(artifacts,path),'utf8'));
 const scores=await read('benchmark/scores.json');const oracle=await read('benchmark/oracle.json');
-const ledger=await updateLedger(artifacts);const dav1d=await read('upstream/record.json');const media=await read('upstream/media-results.json');const skia=await read('skia/record.json');
+await updateLedger(artifacts);
+const baselineArchives=[];for(const file of(await readdir(resolve(artifacts,'analyses'))).filter(f=>f.endsWith('.json'))){const record=JSON.parse(await readFile(resolve(artifacts,'analyses',file),'utf8'));if(record.study===undefined||record.study==='defensive-path-pilot-v1')baselineArchives.push({file,record});}
+const ledger=summarizeCosts(baselineArchives);const dav1d=await read('upstream/record.json');const media=await read('upstream/media-results.json');const skia=await read('skia/record.json');
 if(!dav1d.passed||!skia.passed||media.length!==8||media.some(r=>!r.passed||r.repeats!==2))throw Error('Incomplete local library evidence');
 if(scores.results.length!==7||ledger.requestsWithUnknownCost||ledger.reportedCostUSD>0.50)throw Error('Incomplete benchmark or accounting evidence');
 for(const [name,f]of Object.entries(fixtures)){
@@ -20,6 +22,7 @@ for(const [name,f]of Object.entries(fixtures)){
 const requests=[];
 for(const file of (await readdir(resolve(artifacts,'analyses'))).filter(f=>f.endsWith('.json'))){
   const bytes=await readFile(resolve(artifacts,'analyses',file));const r=JSON.parse(bytes);
+  if(r.study!==undefined&&r.study!=='defensive-path-pilot-v1')continue;
   // Explicit allowlist excludes headers, credentials and unrelated environment values.
   requests.push({archive:file,archiveSha256:r.restoredFromArchiveSha256??hash(bytes),capturedAt:r.capturedAt,sourceRevision:r.sourceRevision,study:r.study,fixture:r.fixture,model:r.model,provider:r.provider,max_tokens:r.max_tokens,promptVersion:r.promptVersion,promptSha256:r.promptSha256,sourceSha256:r.sourceSha256,status:r.status,stopReason:r.stopReason,httpStatus:r.httpStatus,usage:r.usage,request:r.study==='defensive-path-pilot-v1'?r.request:undefined,content:r.content});
 }
