@@ -15,3 +15,9 @@ research-desk/.env
 research-desk/.env.local
 
 research-desk/.env.*.local
+research-desk/artifacts/
+
+# Credentials at any depth; templates are safe to track.
+.env
+.env.*
+!.env.example
