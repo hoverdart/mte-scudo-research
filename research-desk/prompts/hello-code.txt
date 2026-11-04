@@ -1,0 +1,1 @@
+Write a Python function named normalize_names(names) that strips surrounding whitespace, drops empty strings, and returns the remaining names in their original order. Use only the standard library.

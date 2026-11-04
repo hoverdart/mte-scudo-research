@@ -78,3 +78,6 @@ and [study protocol](docs/STUDY_PROTOCOL.md). They cover safe C branch tests,
 model prediction scoring, ordinary native Skia/dav1d tests and cumulative model
 costs. `npm run study:restore`, `npm run benchmark:score` and `npm run costs`
 replay/report saved model evidence without making paid requests.
+
+For general prompts, code-only responses and named text-file bundles, use
+`npm run prompt -- --help`; see [PROMPT_RUNNER.md](docs/PROMPT_RUNNER.md).

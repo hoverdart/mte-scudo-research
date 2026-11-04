@@ -1,0 +1,1 @@
+Create a small Python module containing normalize_names(names), which strips surrounding whitespace, drops empty strings, and preserves order. Include a separate unittest test file and a short README explaining how to run it. Use only the standard library.
