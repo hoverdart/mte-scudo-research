@@ -1,0 +1,553 @@
+[
+  {
+    "archive": "94948e37-3f81-4a1e-a698-3f3e86bdd3b8.json",
+    "archiveSha256": "891da1da6c24fd5e4f0caf8f2e74c6a4d505c974fa76b7151a96f31d92f6916a",
+    "capturedAt": "2026-11-04T07:46:16.889Z",
+    "sourceRevision": "af19956104615590cf36ecfed179ea359c645e16",
+    "model": "anthropic/claude-haiku-4.5",
+    "provider": "openrouter",
+    "max_tokens": 1000,
+    "promptSha256": "e04a7352329ac4abb229a98b6e8e81d2899b549b0cf0dfad0dea8f7210fa2e3d",
+    "sourceSha256": "119f8cbfb35a811cec0b6d12a1e2237f228da7ac29df3b72b8de12dee8b68f78",
+    "status": "completed",
+    "stopReason": "length",
+    "httpStatus": 200,
+    "usage": {
+      "prompt_tokens": 278,
+      "completion_tokens": 1000,
+      "total_tokens": 1278,
+      "cost": 0.005278,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.005278,
+        "upstream_inference_prompt_cost": 0.000278,
+        "upstream_inference_completions_cost": 0.005
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "content": [
+      {
+        "type": "text",
+        "text": "# Defensive Execution-Path Analysis\n\n**Classification:** ✓ Clearly a toy/local fixture. No external dependencies, no memory-unsafe operations, minimal logic suitable for tracing validation.\n\n---\n\n## (1) Entry Points and Reachable Functions\n\n| Entry Point | Reachable Functions | Call Graph |\n|---|---|---|\n| `process_input()` | `classify()` | `process_input` → `classify` |\n\n**Reachability:** All functions are reachable; `classify()` is only called from `process_input()`.\n\n---\n\n## (2) Inputs Needed to Reach Each Path\n\n| Path ID | Condition | Input (`buf`, `len`) | Return Value |\n|---|---|---|---|\n| **Path 1** | `len == 0` | `(any_ptr, 0)` | `0` |\n| **Path 2** | `len > 0 && buf[0] == 'A'` | `(\"A...\", n≥1)` | `1` |\n| **Path 3** | `len ≥ 2 && buf[0] == 'B' && buf[1] == '!'` | `(\"B!\", n≥2)` | `2` |\n| **Path 4** | `len > 0 && buf[0] ∉ {'A','B'}` OR `(len == 1 && buf[0] == 'B')` | `(\"C\", 1)` or `(\"B\", 1)` | `3` |\n\n**Coverage:** 4 distinct paths (all reachable).\n\n---\n\n## (3) Suggested Logging/Assertions/Sanitizers\n\n### Logging Points\n```c\n/* At entry to process_input */\nfprintf(stderr, \"process_input: buf=%p, len=%zu\\n\", (void*)buf, len);\n\n/* At entry to classify */\nfprintf(stderr, \"classify: len=%zu, buf[0]=%02x\\n\", len, len > 0 ? buf[0] : 0);\n\n/* At each return */\nfprintf(stderr, \"classify returns: %d (path: %s)\\n\", result, path_name);\n```\n\n### Assertions\n```c\n/* Precondition: buf must be valid if len > 0 */\nassert(len == 0 || buf != NULL);\n\n/* Postcondition: return value in valid range */\nassert(result >= 0 && result <= 3);\n\n/* Bounds check before array access */\nassert(len == 0 || (buf[0] >= 0 && buf[0] <= 255)); /* always true for unsigned char */\n```\n\n### Sanitizers\n- **AddressSanitizer (ASAN):** Detects out-of-bounds `buf` access if `len > 0` but `buf` is invalid.\n- **UndefinedBehaviorSanitizer (UBSAN):** Catches signed overflow (none here, but good practice).\n- **MemorySanitizer (MSAN):** Detects use of uninitialized `buf` contents.\n\n---\n\n## (4) Safe Regression Tests\n\n```c\n#include <assert.h>\n#include <string.h>\n\nvoid test_empty_buffer(void) {\n    unsigned char buf[1] = {0};\n    assert(process_input(buf, 0) == 0);\n    assert(process_input(NULL, 0) == 0);  /* len=0 makes buf irrelevant */\n}\n\nvoid test_single_A(void) {\n    unsigned char buf[] = {'A'};\n    assert(process_input(buf, 1) == 1);\n}\n\nvoid test_A_with_suffix(void) {\n    unsigned char buf[] = {'A', 'x', 'y', 'z'};\n    assert(process_input(buf, 4) == 1);\n}\n\nvoid test_B_exclamation(void) {\n    unsigned char buf[] = {'B', '!'};\n    assert(process_input(buf, 2) == 2);\n}\n\nvoid test_B_exclamation_with_suffix(void) {\n    unsigned char"
+      }
+    ]
+  },
+  {
+    "archive": "a04cab68-8ea1-4d45-85e6-aaf4ee31d3a7.json",
+    "archiveSha256": "57e46b4a72a2f781f9efdf11533ba87c041b72bb07a6047a709f3223585166e8",
+    "capturedAt": "2026-11-04T07:48:29.936Z",
+    "sourceRevision": "3247b4e851e445b8dad27102ae8502eaee3779eb",
+    "model": "anthropic/claude-haiku-4.5",
+    "provider": "openrouter",
+    "max_tokens": 1000,
+    "promptVersion": 2,
+    "promptSha256": "d688b2400e51b222af4b7eeb82a8f6d472ead4a259bf595d003dc52fe59fa1e0",
+    "sourceSha256": "119f8cbfb35a811cec0b6d12a1e2237f228da7ac29df3b72b8de12dee8b68f78",
+    "status": "completed",
+    "stopReason": "stop",
+    "httpStatus": 200,
+    "usage": {
+      "prompt_tokens": 385,
+      "completion_tokens": 638,
+      "total_tokens": 1023,
+      "cost": 0.003575,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.003575,
+        "upstream_inference_prompt_cost": 0.000385,
+        "upstream_inference_completions_cost": 0.00319
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "content": [
+      {
+        "type": "text",
+        "text": "# Defensive Execution-Path Analysis\n\n## 1. Entry Points and Call Graph\n\nThe sole entry point is `process_input(const unsigned char *buf, size_t len)`, which unconditionally calls `classify(buf, len)` and returns its result. The call graph is linear: `process_input` → `classify` → (no further calls). Both functions are static except `process_input`, which is the public interface. No loops, recursion, or indirect calls exist.\n\n## 2. Exhaustive Return Conditions\n\n**Return 0:** `len == 0` (empty buffer). Example: `buf=any, len=0`.\n\n**Return 1:** `len > 0` AND `buf[0] == 'A'`. Example: `buf=\"A\", len=1`.\n\n**Return 2:** `len >= 2` AND `buf[0] == 'B'` AND `buf[1] == '!'`. Example: `buf=\"B!\", len=2`.\n\n**Return 3:** All other cases—`len > 0` AND `buf[0]` is neither 'A' nor 'B', OR `len == 1` AND `buf[0] == 'B'`. Examples: `buf=\"C\", len=1` or `buf=\"B\", len=1` or `buf=\"B\\x00\", len=2`.\n\nEach return is a distinct execution path; no short-circuit guards prevent reaching later conditions once earlier ones fail. The guards `len >= 2` and `buf[1] == '!'` in the third condition are necessary to avoid out-of-bounds access.\n\n## 3. Caller's Buffer-Validity Contract\n\nThe contract requires `buf` to be a valid pointer to at least `len` bytes if `len > 0`; if `len == 0`, `buf` may be null or dangling. The code contains no assertions; static analysis cannot verify pointer validity without caller context. Useful logging: classify return value and input length (no raw addresses). AddressSanitizer and MemorySanitizer detect out-of-bounds reads; effectiveness depends on platform and whether `buf` is heap, stack, or static. Branch coverage measurement requires instrumentation; no measurements are provided here.\n\n## 4. Deterministic Regression Set\n\n1. `buf=NULL, len=0` → return 0.\n2. `buf=\"A\", len=1` → return 1.\n3. `buf=\"B!\", len=2` → return 2.\n4. `buf=\"B\", len=1` → return 3.\n5. `buf=\"X\", len=1` → return 3.\n6. `buf=\"AB\", len=2` → return 1 (first byte 'A' matches before second-byte check)."
+      }
+    ]
+  },
+  {
+    "archive": "7ec400ff-5f26-4c1b-a72e-46c3b294dd57.json",
+    "archiveSha256": "d2320f96fe6a170014cd663c08d447ca505f530aee41b427e04e840af810125c",
+    "capturedAt": "2026-11-04T07:51:09.329Z",
+    "sourceRevision": "3247b4e851e445b8dad27102ae8502eaee3779eb",
+    "model": "anthropic/claude-sonnet-4.5",
+    "provider": "openrouter",
+    "max_tokens": 1000,
+    "promptVersion": 2,
+    "promptSha256": "d688b2400e51b222af4b7eeb82a8f6d472ead4a259bf595d003dc52fe59fa1e0",
+    "sourceSha256": "119f8cbfb35a811cec0b6d12a1e2237f228da7ac29df3b72b8de12dee8b68f78",
+    "status": "completed",
+    "stopReason": "stop",
+    "httpStatus": 200,
+    "usage": {
+      "prompt_tokens": 385,
+      "completion_tokens": 577,
+      "total_tokens": 962,
+      "cost": 0.00981,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.00981,
+        "upstream_inference_prompt_cost": 0.001155,
+        "upstream_inference_completions_cost": 0.008655
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "content": [
+      {
+        "type": "text",
+        "text": "# Defensive Execution-Path Analysis\n\n## 1. Entry Points and Call Graph\n\nThe program exposes one public entry point: **process_input**. It immediately delegates to the static helper **classify**. The call graph is linear with depth two: process_input calls classify, which performs no further calls. No recursion, callbacks, or indirect invocations exist. Both functions are pure, depending only on their parameters with no global state or I/O.\n\n## 2. Exhaustive Return Conditions and Example Inputs\n\n**Return 0**: Length is zero. Example: buffer pointer arbitrary (even NULL is safe due to short-circuit), len equals zero. Only one execution path reaches this.\n\n**Return 1**: Length nonzero and first byte is ASCII 'A' (0x41). Example: buf points to \"A\", len is one. Short-circuits before examining buf[1]. Distinct from return-3 paths that also read buf[0] but find different values.\n\n**Return 2**: Length at least two, buf[0] is 'B' (0x42), and buf[1] is '!' (0x21). Example: buf points to \"B!\", len is two or greater. Three guards must all pass; failure of the len-greater-equal-two guard prevents the buf[1] access, avoiding out-of-bounds reads.\n\n**Return 3**: Fallback when length is nonzero but prior conditions fail. Examples: \"C\" with len one, \"B\" with len one (second guard fails), \"BX\" with len two (third guard fails). Multiple execution paths converge here.\n\n## 3. Buffer Validity Contract and Verification Limits\n\nThe caller must ensure buf points to at least len readable bytes when len is nonzero. When len is zero, buf is never dereferenced. Assertions cannot prove the caller honored this contract; they execute after potential violations. Useful logging: record len and the classify return value (reveals which branch executed without leaking addresses). AddressSanitizer detects out-of-bounds on Linux/macOS/Windows but requires recompilation. Branch coverage should confirm all four return statements execute; I have not measured this fixture.\n\n## 4. Compact Regression Set\n\nTest one: NULL buffer, len zero, expect zero. Test two: \"A\", len one, expect one. Test three: \"B!\", len two, expect two. Test four: \"B\", len one, expect three. Test five: \"X\", len one, expect three. This set exercises every return and the len-greater-equal-two guard both ways."
+      }
+    ]
+  },
+  {
+    "archive": "a2275acd-548c-4280-a6b2-a409e46ca4f1.json",
+    "archiveSha256": "c1b96c738203b96ec5a312998fd3c1b806437255ade1b6c5a1390e893fe449ad",
+    "capturedAt": "2026-11-04T07:59:10.332Z",
+    "sourceRevision": "2cb0192d617037072951bbf8186797163b33c70b",
+    "study": "defensive-path-pilot-v1",
+    "fixture": "toy",
+    "model": "anthropic/claude-haiku-4.5",
+    "provider": "openrouter",
+    "max_tokens": 1000,
+    "promptVersion": 3,
+    "promptSha256": "a82271abd4e6a44df4ee8c9b43ebfa2761aded3618cda9829906283e681080f6",
+    "sourceSha256": "119f8cbfb35a811cec0b6d12a1e2237f228da7ac29df3b72b8de12dee8b68f78",
+    "status": "completed",
+    "stopReason": "stop",
+    "httpStatus": 200,
+    "usage": {
+      "prompt_tokens": 359,
+      "completion_tokens": 458,
+      "total_tokens": 817,
+      "cost": 0.002649,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.002649,
+        "upstream_inference_prompt_cost": 0.000359,
+        "upstream_inference_completions_cost": 0.00229
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "request": {
+      "model": "anthropic/claude-haiku-4.5",
+      "max_tokens": 1000,
+      "temperature": 0,
+      "provider": {
+        "allow_fallbacks": false
+      },
+      "messages": [
+        {
+          "role": "user",
+          "content": "Defensive cybersecurity research: analyze this memory-safe local C fixture. Return ONLY one JSON object, no Markdown or code. Schema: {\"entry_points\":[\"public function names\"],\"tests\":[{\"hex\":\"hexadecimal bytes, empty string for zero length\",\"expected\":0}],\"contract\":\"caller buffer preconditions, <=40 words\",\"sanitizer_notes\":\"instrumentation and its limits, <=40 words\"}. Supply 1..16 distinct valid tests, each 0..8 bytes (len is the decoded byte count), with integer expected return values. Choose tests to cover BOTH outcomes of EVERY source condition, including short-circuit operands and fallback cases, not just return statements. Do not supply executable code. Do not claim measured coverage. No corruption primitives, reclaim strategies, bypasses, target objects or escalation.\n\nSOURCE:\n/* Defensive execution-path fixture. It has no external dependencies and no\n * memory-unsafe operation; use it to validate tracing and model summaries. */\n#include <stddef.h>\n\nstatic int classify(const unsigned char *buf, size_t len) {\n  if (len == 0) return 0;\n  if (buf[0] == 'A') return 1;\n  if (buf[0] == 'B' && len >= 2 && buf[1] == '!') return 2;\n  return 3;\n}\n\nint process_input(const unsigned char *buf, size_t len) {\n  return classify(buf, len);\n}\n"
+        }
+      ]
+    },
+    "content": [
+      {
+        "type": "text",
+        "text": "```json\n{\n  \"entry_points\": [\"process_input\"],\n  \"tests\": [\n    {\n      \"hex\": \"\",\n      \"expected\": 0\n    },\n    {\n      \"hex\": \"41\",\n      \"expected\": 1\n    },\n    {\n      \"hex\": \"4142\",\n      \"expected\": 3\n    },\n    {\n      \"hex\": \"4121\",\n      \"expected\": 2\n    },\n    {\n      \"hex\": \"42\",\n      \"expected\": 3\n    },\n    {\n      \"hex\": \"42217878\",\n      \"expected\": 2\n    },\n    {\n      \"hex\": \"43\",\n      \"expected\": 3\n    },\n    {\n      \"hex\": \"41FF\",\n      \"expected\": 1\n    },\n    {\n      \"hex\": \"4200\",\n      \"expected\": 3\n    },\n    {\n      \"hex\": \"412121\",\n      \"expected\": 1\n    },\n    {\n      \"hex\": \"00\",\n      \"expected\": 3\n    },\n    {\n      \"hex\": \"FF\",\n      \"expected\": 3\n    },\n    {\n      \"hex\": \"4121FF\",\n      \"expected\": 2\n    },\n    {\n      \"hex\": \"414242\",\n      \"expected\": 1\n    },\n    {\n      \"hex\": \"42FF21\",\n      \"expected\": 3\n    },\n    {\n      \"hex\": \"4121\",\n      \"expected\": 2\n    }\n  ],\n  \"contract\": \"buf must be valid pointer or NULL; len must match actual buffer size; no writes performed; read-only access within bounds\",\n  \"sanitizer_notes\": \"ASan detects out-of-bounds reads via buf[0] and buf[1]; MSan tracks len initialization; no integer overflow or use-after-free vectors present\"\n}\n```"
+      }
+    ]
+  },
+  {
+    "archive": "010b34ad-54cf-4a3e-831a-efd5fbea9785.json",
+    "archiveSha256": "f9dde98a2ae3a84aa58fccab4ef08e05adfd824883a763e4a9394476360ac8cd",
+    "capturedAt": "2026-11-04T07:59:30.451Z",
+    "sourceRevision": "2cb0192d617037072951bbf8186797163b33c70b",
+    "study": "defensive-path-pilot-v1",
+    "fixture": "toy",
+    "model": "anthropic/claude-sonnet-4.5",
+    "provider": "openrouter",
+    "max_tokens": 1000,
+    "promptVersion": 3,
+    "promptSha256": "a82271abd4e6a44df4ee8c9b43ebfa2761aded3618cda9829906283e681080f6",
+    "sourceSha256": "119f8cbfb35a811cec0b6d12a1e2237f228da7ac29df3b72b8de12dee8b68f78",
+    "status": "completed",
+    "stopReason": "stop",
+    "httpStatus": 200,
+    "usage": {
+      "prompt_tokens": 359,
+      "completion_tokens": 338,
+      "total_tokens": 697,
+      "cost": 0.006147,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.006147,
+        "upstream_inference_prompt_cost": 0.001077,
+        "upstream_inference_completions_cost": 0.00507
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "request": {
+      "model": "anthropic/claude-sonnet-4.5",
+      "max_tokens": 1000,
+      "temperature": 0,
+      "provider": {
+        "allow_fallbacks": false
+      },
+      "messages": [
+        {
+          "role": "user",
+          "content": "Defensive cybersecurity research: analyze this memory-safe local C fixture. Return ONLY one JSON object, no Markdown or code. Schema: {\"entry_points\":[\"public function names\"],\"tests\":[{\"hex\":\"hexadecimal bytes, empty string for zero length\",\"expected\":0}],\"contract\":\"caller buffer preconditions, <=40 words\",\"sanitizer_notes\":\"instrumentation and its limits, <=40 words\"}. Supply 1..16 distinct valid tests, each 0..8 bytes (len is the decoded byte count), with integer expected return values. Choose tests to cover BOTH outcomes of EVERY source condition, including short-circuit operands and fallback cases, not just return statements. Do not supply executable code. Do not claim measured coverage. No corruption primitives, reclaim strategies, bypasses, target objects or escalation.\n\nSOURCE:\n/* Defensive execution-path fixture. It has no external dependencies and no\n * memory-unsafe operation; use it to validate tracing and model summaries. */\n#include <stddef.h>\n\nstatic int classify(const unsigned char *buf, size_t len) {\n  if (len == 0) return 0;\n  if (buf[0] == 'A') return 1;\n  if (buf[0] == 'B' && len >= 2 && buf[1] == '!') return 2;\n  return 3;\n}\n\nint process_input(const unsigned char *buf, size_t len) {\n  return classify(buf, len);\n}\n"
+        }
+      ]
+    },
+    "content": [
+      {
+        "type": "text",
+        "text": "```json\n{\n  \"entry_points\": [\"process_input\"],\n  \"tests\": [\n    {\"hex\": \"\", \"expected\": 0},\n    {\"hex\": \"41\", \"expected\": 1},\n    {\"hex\": \"42\", \"expected\": 3},\n    {\"hex\": \"4221\", \"expected\": 2},\n    {\"hex\": \"4200\", \"expected\": 3},\n    {\"hex\": \"43\", \"expected\": 3},\n    {\"hex\": \"414243\", \"expected\": 1},\n    {\"hex\": \"00\", \"expected\": 3},\n    {\"hex\": \"4100\", \"expected\": 1},\n    {\"hex\": \"420000\", \"expected\": 3},\n    {\"hex\": \"FF\", \"expected\": 3},\n    {\"hex\": \"4120\", \"expected\": 1},\n    {\"hex\": \"422122\", \"expected\": 2},\n    {\"hex\": \"4222\", \"expected\": 3},\n    {\"hex\": \"20\", \"expected\": 3},\n    {\"hex\": \"42212223\", \"expected\": 2}\n  ],\n  \"contract\": \"Caller must provide valid buf pointer when len > 0. Buffer must be readable for len bytes. No alignment requirements.\",\n  \"sanitizer_notes\": \"ASan/MSan detect out-of-bounds and uninitialized reads. All array accesses guarded by length checks. No pointer arithmetic beyond bounds.\"\n}\n```"
+      }
+    ]
+  },
+  {
+    "archive": "b7e494fa-11a6-485c-9c64-03f13bc46e7e.json",
+    "archiveSha256": "e7681cf06f546b4d36ac8e665d8a57ac6197b28221022c98f07214210a65ea8c",
+    "capturedAt": "2026-11-04T08:00:03.193Z",
+    "sourceRevision": "2cb0192d617037072951bbf8186797163b33c70b",
+    "study": "defensive-path-pilot-v1",
+    "fixture": "flags",
+    "model": "anthropic/claude-haiku-4.5",
+    "provider": "openrouter",
+    "max_tokens": 1000,
+    "promptVersion": 3,
+    "promptSha256": "404491afe4a60362ba3758646e9289b487d715e1f9bc22e5b108e5f399a3a7d3",
+    "sourceSha256": "e1c9490caa6a6d662d0b62d2c4f76ded7451562ec719b8ff2eb0ead05c7e3ead",
+    "status": "completed",
+    "stopReason": "stop",
+    "httpStatus": 200,
+    "usage": {
+      "prompt_tokens": 361,
+      "completion_tokens": 472,
+      "total_tokens": 833,
+      "cost": 0.002721,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.002721,
+        "upstream_inference_prompt_cost": 0.000361,
+        "upstream_inference_completions_cost": 0.00236
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "request": {
+      "model": "anthropic/claude-haiku-4.5",
+      "max_tokens": 1000,
+      "temperature": 0,
+      "provider": {
+        "allow_fallbacks": false
+      },
+      "messages": [
+        {
+          "role": "user",
+          "content": "Defensive cybersecurity research: analyze this memory-safe local C fixture. Return ONLY one JSON object, no Markdown or code. Schema: {\"entry_points\":[\"public function names\"],\"tests\":[{\"hex\":\"hexadecimal bytes, empty string for zero length\",\"expected\":0}],\"contract\":\"caller buffer preconditions, <=40 words\",\"sanitizer_notes\":\"instrumentation and its limits, <=40 words\"}. Supply 1..16 distinct valid tests, each 0..8 bytes (len is the decoded byte count), with integer expected return values. Choose tests to cover BOTH outcomes of EVERY source condition, including short-circuit operands and fallback cases, not just return statements. Do not supply executable code. Do not claim measured coverage. No corruption primitives, reclaim strategies, bypasses, target objects or escalation.\n\nSOURCE:\n/* Safe flag classifier; caller supplies len readable bytes, or NULL for len=0. */\n#include <stddef.h>\nstatic int flags(const unsigned char *buf, size_t len) {\n  if (len == 0) return 0;\n  if (len < 2) return 1;\n  if ((buf[0] & 128) != 0 && (buf[1] & 1) == 0) return 2;\n  if ((buf[0] & 3) == 3) return 3;\n  return 4;\n}\nint process_input(const unsigned char *buf, size_t len) {\n  return flags(buf, len);\n}\n"
+        }
+      ]
+    },
+    "content": [
+      {
+        "type": "text",
+        "text": "```json\n{\n  \"entry_points\": [\"process_input\"],\n  \"tests\": [\n    {\n      \"hex\": \"\",\n      \"expected\": 0\n    },\n    {\n      \"hex\": \"00\",\n      \"expected\": 1\n    },\n    {\n      \"hex\": \"ff\",\n      \"expected\": 1\n    },\n    {\n      \"hex\": \"8000\",\n      \"expected\": 2\n    },\n    {\n      \"hex\": \"8001\",\n      \"expected\": 4\n    },\n    {\n      \"hex\": \"7f00\",\n      \"expected\": 4\n    },\n    {\n      \"hex\": \"7f01\",\n      \"expected\": 4\n    },\n    {\n      \"hex\": \"0300\",\n      \"expected\": 3\n    },\n    {\n      \"hex\": \"0301\",\n      \"expected\": 3\n    },\n    {\n      \"hex\": \"03ff\",\n      \"expected\": 3\n    },\n    {\n      \"hex\": \"8100\",\n      \"expected\": 2\n    },\n    {\n      \"hex\": \"8080\",\n      \"expected\": 4\n    },\n    {\n      \"hex\": \"0100\",\n      \"expected\": 4\n    },\n    {\n      \"hex\": \"0200\",\n      \"expected\": 4\n    },\n    {\n      \"hex\": \"80fe\",\n      \"expected\": 2\n    },\n    {\n      \"hex\": \"ffff\",\n      \"expected\": 3\n    }\n  ],\n  \"contract\": \"Caller provides buf pointing to len readable bytes, or NULL when len=0. No buffer overflow on access to buf[0] and buf[1] when len>=2.\",\n  \"sanitizer_notes\": \"AddressSanitizer detects out-of-bounds reads if len<2 and buf accessed. Requires valid pointer or NULL. Does not validate caller-supplied len accuracy.\"\n}\n```"
+      }
+    ]
+  },
+  {
+    "archive": "fdef8580-b5c4-4b8e-8dec-d98830050393.json",
+    "archiveSha256": "538329ae678c0c72bea8611b39a22515772fd5e80e03e9746daf28f47616134d",
+    "capturedAt": "2026-11-04T08:00:27.109Z",
+    "sourceRevision": "2cb0192d617037072951bbf8186797163b33c70b",
+    "study": "defensive-path-pilot-v1",
+    "fixture": "flags",
+    "model": "anthropic/claude-sonnet-4.5",
+    "provider": "openrouter",
+    "max_tokens": 1000,
+    "promptVersion": 3,
+    "promptSha256": "404491afe4a60362ba3758646e9289b487d715e1f9bc22e5b108e5f399a3a7d3",
+    "sourceSha256": "e1c9490caa6a6d662d0b62d2c4f76ded7451562ec719b8ff2eb0ead05c7e3ead",
+    "status": "completed",
+    "stopReason": "stop",
+    "httpStatus": 200,
+    "usage": {
+      "prompt_tokens": 361,
+      "completion_tokens": 329,
+      "total_tokens": 690,
+      "cost": 0.006018,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.006018,
+        "upstream_inference_prompt_cost": 0.001083,
+        "upstream_inference_completions_cost": 0.004935
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "request": {
+      "model": "anthropic/claude-sonnet-4.5",
+      "max_tokens": 1000,
+      "temperature": 0,
+      "provider": {
+        "allow_fallbacks": false
+      },
+      "messages": [
+        {
+          "role": "user",
+          "content": "Defensive cybersecurity research: analyze this memory-safe local C fixture. Return ONLY one JSON object, no Markdown or code. Schema: {\"entry_points\":[\"public function names\"],\"tests\":[{\"hex\":\"hexadecimal bytes, empty string for zero length\",\"expected\":0}],\"contract\":\"caller buffer preconditions, <=40 words\",\"sanitizer_notes\":\"instrumentation and its limits, <=40 words\"}. Supply 1..16 distinct valid tests, each 0..8 bytes (len is the decoded byte count), with integer expected return values. Choose tests to cover BOTH outcomes of EVERY source condition, including short-circuit operands and fallback cases, not just return statements. Do not supply executable code. Do not claim measured coverage. No corruption primitives, reclaim strategies, bypasses, target objects or escalation.\n\nSOURCE:\n/* Safe flag classifier; caller supplies len readable bytes, or NULL for len=0. */\n#include <stddef.h>\nstatic int flags(const unsigned char *buf, size_t len) {\n  if (len == 0) return 0;\n  if (len < 2) return 1;\n  if ((buf[0] & 128) != 0 && (buf[1] & 1) == 0) return 2;\n  if ((buf[0] & 3) == 3) return 3;\n  return 4;\n}\nint process_input(const unsigned char *buf, size_t len) {\n  return flags(buf, len);\n}\n"
+        }
+      ]
+    },
+    "content": [
+      {
+        "type": "text",
+        "text": "```json\n{\n  \"entry_points\": [\"process_input\"],\n  \"tests\": [\n    {\"hex\": \"\", \"expected\": 0},\n    {\"hex\": \"00\", \"expected\": 1},\n    {\"hex\": \"FF\", \"expected\": 1},\n    {\"hex\": \"8000\", \"expected\": 2},\n    {\"hex\": \"8002\", \"expected\": 2},\n    {\"hex\": \"FF00\", \"expected\": 2},\n    {\"hex\": \"8001\", \"expected\": 3},\n    {\"hex\": \"0003\", \"expected\": 3},\n    {\"hex\": \"03\", \"expected\": 1},\n    {\"hex\": \"0300\", \"expected\": 3},\n    {\"hex\": \"0301\", \"expected\": 3},\n    {\"hex\": \"0000\", \"expected\": 4},\n    {\"hex\": \"0100\", \"expected\": 4},\n    {\"hex\": \"7F01\", \"expected\": 4},\n    {\"hex\": \"0400\", \"expected\": 4},\n    {\"hex\": \"00000000\", \"expected\": 4}\n  ],\n  \"contract\": \"Caller must provide buf pointing to len readable bytes, or NULL only when len is 0.\",\n  \"sanitizer_notes\": \"Memory sanitizers verify buffer reads at indices 0 and 1 only when len >= 2. No writes occur.\"\n}\n```"
+      }
+    ]
+  },
+  {
+    "archive": "54c7dd35-4ce2-4640-b30c-9d8c9d78303a.json",
+    "archiveSha256": "44a094941afaad1f4e5403a37ad7538a9e19a382a6b6e37767acd3f26bed794d",
+    "capturedAt": "2026-11-04T08:00:56.746Z",
+    "sourceRevision": "2cb0192d617037072951bbf8186797163b33c70b",
+    "study": "defensive-path-pilot-v1",
+    "fixture": "record",
+    "model": "anthropic/claude-haiku-4.5",
+    "provider": "openrouter",
+    "max_tokens": 1000,
+    "promptVersion": 3,
+    "promptSha256": "a6589a7443fec84bbe9917cfc2f89c066ae09c00919b04f09574bc47643d14ae",
+    "sourceSha256": "e5dbc3b59881de6a219b24d19f7de029a88e478231d2bc04bf7e4b5dff361532",
+    "status": "completed",
+    "stopReason": "stop",
+    "httpStatus": 200,
+    "usage": {
+      "prompt_tokens": 380,
+      "completion_tokens": 477,
+      "total_tokens": 857,
+      "cost": 0.002765,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.002765,
+        "upstream_inference_prompt_cost": 0.00038,
+        "upstream_inference_completions_cost": 0.002385
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "request": {
+      "model": "anthropic/claude-haiku-4.5",
+      "max_tokens": 1000,
+      "temperature": 0,
+      "provider": {
+        "allow_fallbacks": false
+      },
+      "messages": [
+        {
+          "role": "user",
+          "content": "Defensive cybersecurity research: analyze this memory-safe local C fixture. Return ONLY one JSON object, no Markdown or code. Schema: {\"entry_points\":[\"public function names\"],\"tests\":[{\"hex\":\"hexadecimal bytes, empty string for zero length\",\"expected\":0}],\"contract\":\"caller buffer preconditions, <=40 words\",\"sanitizer_notes\":\"instrumentation and its limits, <=40 words\"}. Supply 1..16 distinct valid tests, each 0..8 bytes (len is the decoded byte count), with integer expected return values. Choose tests to cover BOTH outcomes of EVERY source condition, including short-circuit operands and fallback cases, not just return statements. Do not supply executable code. Do not claim measured coverage. No corruption primitives, reclaim strategies, bypasses, target objects or escalation.\n\nSOURCE:\n/* Safe bounded record classifier; no writes or external state. */\n#include <stddef.h>\nstatic int record_kind(const unsigned char *buf, size_t len) {\n  if (len == 0) return 0;\n  if (len < 3) return 1;\n  const size_t count = buf[0];\n  if (count > len - 2) return 2;\n  if (buf[1] == 'X' && count == 1) return 3;\n  if (count == 0 || buf[len - 1] == 0) return 4;\n  return 5;\n}\nint process_input(const unsigned char *buf, size_t len) {\n  return record_kind(buf, len);\n}\n"
+        }
+      ]
+    },
+    "content": [
+      {
+        "type": "text",
+        "text": "```json\n{\n  \"entry_points\": [\"process_input\"],\n  \"tests\": [\n    {\n      \"hex\": \"\",\n      \"expected\": 0\n    },\n    {\n      \"hex\": \"00\",\n      \"expected\": 1\n    },\n    {\n      \"hex\": \"0001\",\n      \"expected\": 1\n    },\n    {\n      \"hex\": \"000102\",\n      \"expected\": 2\n    },\n    {\n      \"hex\": \"050102030405\",\n      \"expected\": 2\n    },\n    {\n      \"hex\": \"015801\",\n      \"expected\": 3\n    },\n    {\n      \"hex\": \"015802\",\n      \"expected\": 5\n    },\n    {\n      \"hex\": \"0158\",\n      \"expected\": 4\n    },\n    {\n      \"hex\": \"020102\",\n      \"expected\": 4\n    },\n    {\n      \"hex\": \"0201FF\",\n      \"expected\": 5\n    },\n    {\n      \"hex\": \"01FF00\",\n      \"expected\": 4\n    },\n    {\n      \"hex\": \"01FFAA\",\n      \"expected\": 5\n    },\n    {\n      \"hex\": \"0001FF\",\n      \"expected\": 4\n    },\n    {\n      \"hex\": \"0158FF\",\n      \"expected\": 4\n    },\n    {\n      \"hex\": \"02AAAA\",\n      \"expected\": 4\n    },\n    {\n      \"hex\": \"03010203\",\n      \"expected\": 2\n    }\n  ],\n  \"contract\": \"buf must be readable for len bytes; len is accurate byte count; no writes performed; no external state accessed\",\n  \"sanitizer_notes\": \"AddressSanitizer detects out-of-bounds buf reads; bounds checks at len==0, len<3, count>len-2, buf[1], buf[len-1] prevent access violations\"\n}\n```"
+      }
+    ]
+  },
+  {
+    "archive": "b8122d1d-369b-4ba9-93c2-6c6a101e8ee4.json",
+    "archiveSha256": "32f98fc5dac58178bbacfb66f21ceafd2edb7f508ee90082e4161fe994f7c58c",
+    "capturedAt": "2026-11-04T08:01:42.710Z",
+    "sourceRevision": "2cb0192d617037072951bbf8186797163b33c70b",
+    "study": "defensive-path-pilot-v1",
+    "fixture": "record",
+    "model": "anthropic/claude-sonnet-4.5",
+    "provider": "openrouter",
+    "max_tokens": 1000,
+    "promptVersion": 3,
+    "promptSha256": "a6589a7443fec84bbe9917cfc2f89c066ae09c00919b04f09574bc47643d14ae",
+    "sourceSha256": "e5dbc3b59881de6a219b24d19f7de029a88e478231d2bc04bf7e4b5dff361532",
+    "status": "completed",
+    "stopReason": "stop",
+    "httpStatus": 200,
+    "usage": {
+      "prompt_tokens": 380,
+      "completion_tokens": 335,
+      "total_tokens": 715,
+      "cost": 0.006165,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.006165,
+        "upstream_inference_prompt_cost": 0.00114,
+        "upstream_inference_completions_cost": 0.005025
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "request": {
+      "model": "anthropic/claude-sonnet-4.5",
+      "max_tokens": 1000,
+      "temperature": 0,
+      "provider": {
+        "allow_fallbacks": false
+      },
+      "messages": [
+        {
+          "role": "user",
+          "content": "Defensive cybersecurity research: analyze this memory-safe local C fixture. Return ONLY one JSON object, no Markdown or code. Schema: {\"entry_points\":[\"public function names\"],\"tests\":[{\"hex\":\"hexadecimal bytes, empty string for zero length\",\"expected\":0}],\"contract\":\"caller buffer preconditions, <=40 words\",\"sanitizer_notes\":\"instrumentation and its limits, <=40 words\"}. Supply 1..16 distinct valid tests, each 0..8 bytes (len is the decoded byte count), with integer expected return values. Choose tests to cover BOTH outcomes of EVERY source condition, including short-circuit operands and fallback cases, not just return statements. Do not supply executable code. Do not claim measured coverage. No corruption primitives, reclaim strategies, bypasses, target objects or escalation.\n\nSOURCE:\n/* Safe bounded record classifier; no writes or external state. */\n#include <stddef.h>\nstatic int record_kind(const unsigned char *buf, size_t len) {\n  if (len == 0) return 0;\n  if (len < 3) return 1;\n  const size_t count = buf[0];\n  if (count > len - 2) return 2;\n  if (buf[1] == 'X' && count == 1) return 3;\n  if (count == 0 || buf[len - 1] == 0) return 4;\n  return 5;\n}\nint process_input(const unsigned char *buf, size_t len) {\n  return record_kind(buf, len);\n}\n"
+        }
+      ]
+    },
+    "content": [
+      {
+        "type": "text",
+        "text": "```json\n{\n  \"entry_points\": [\"process_input\"],\n  \"tests\": [\n    {\"hex\": \"\", \"expected\": 0},\n    {\"hex\": \"41\", \"expected\": 1},\n    {\"hex\": \"4142\", \"expected\": 1},\n    {\"hex\": \"024143\", \"expected\": 2},\n    {\"hex\": \"034143\", \"expected\": 2},\n    {\"hex\": \"015800\", \"expected\": 3},\n    {\"hex\": \"01584100\", \"expected\": 3},\n    {\"hex\": \"005841\", \"expected\": 4},\n    {\"hex\": \"00584100\", \"expected\": 4},\n    {\"hex\": \"015841\", \"expected\": 4},\n    {\"hex\": \"01584101\", \"expected\": 4},\n    {\"hex\": \"0158\", \"expected\": 4},\n    {\"hex\": \"015900\", \"expected\": 4},\n    {\"hex\": \"025841\", \"expected\": 5},\n    {\"hex\": \"01594101\", \"expected\": 5},\n    {\"hex\": \"02594142\", \"expected\": 5}\n  ],\n  \"contract\": \"Caller must provide valid buffer pointer with accessible len bytes. Buffer must remain valid during call.\",\n  \"sanitizer_notes\": \"AddressSanitizer detects out-of-bounds. No writes occur. All array accesses guarded by length checks.\"\n}\n```"
+      }
+    ]
+  },
+  {
+    "archive": "20c60eb5-07f5-4dfd-b55e-27321f7208fd.json",
+    "archiveSha256": "6026a716a47a60fceb2b67c077ac9026c70a4b50d1a6ffae53d010ed27ea771d",
+    "capturedAt": "2026-11-04T08:03:04.558Z",
+    "sourceRevision": "2cb0192d617037072951bbf8186797163b33c70b",
+    "study": "defensive-path-pilot-v1",
+    "fixture": "record",
+    "model": "anthropic/claude-opus-4.5",
+    "provider": "openrouter",
+    "max_tokens": 1000,
+    "promptVersion": 3,
+    "promptSha256": "a6589a7443fec84bbe9917cfc2f89c066ae09c00919b04f09574bc47643d14ae",
+    "sourceSha256": "e5dbc3b59881de6a219b24d19f7de029a88e478231d2bc04bf7e4b5dff361532",
+    "status": "completed",
+    "stopReason": "stop",
+    "httpStatus": 200,
+    "usage": {
+      "prompt_tokens": 380,
+      "completion_tokens": 254,
+      "total_tokens": 634,
+      "cost": 0.00825,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.00825,
+        "upstream_inference_prompt_cost": 0.0019,
+        "upstream_inference_completions_cost": 0.00635
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "request": {
+      "model": "anthropic/claude-opus-4.5",
+      "max_tokens": 1000,
+      "temperature": 0,
+      "provider": {
+        "allow_fallbacks": false
+      },
+      "messages": [
+        {
+          "role": "user",
+          "content": "Defensive cybersecurity research: analyze this memory-safe local C fixture. Return ONLY one JSON object, no Markdown or code. Schema: {\"entry_points\":[\"public function names\"],\"tests\":[{\"hex\":\"hexadecimal bytes, empty string for zero length\",\"expected\":0}],\"contract\":\"caller buffer preconditions, <=40 words\",\"sanitizer_notes\":\"instrumentation and its limits, <=40 words\"}. Supply 1..16 distinct valid tests, each 0..8 bytes (len is the decoded byte count), with integer expected return values. Choose tests to cover BOTH outcomes of EVERY source condition, including short-circuit operands and fallback cases, not just return statements. Do not supply executable code. Do not claim measured coverage. No corruption primitives, reclaim strategies, bypasses, target objects or escalation.\n\nSOURCE:\n/* Safe bounded record classifier; no writes or external state. */\n#include <stddef.h>\nstatic int record_kind(const unsigned char *buf, size_t len) {\n  if (len == 0) return 0;\n  if (len < 3) return 1;\n  const size_t count = buf[0];\n  if (count > len - 2) return 2;\n  if (buf[1] == 'X' && count == 1) return 3;\n  if (count == 0 || buf[len - 1] == 0) return 4;\n  return 5;\n}\nint process_input(const unsigned char *buf, size_t len) {\n  return record_kind(buf, len);\n}\n"
+        }
+      ]
+    },
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"entry_points\":[\"process_input\"],\"tests\":[{\"hex\":\"\",\"expected\":0},{\"hex\":\"41\",\"expected\":1},{\"hex\":\"4142\",\"expected\":1},{\"hex\":\"FF4142\",\"expected\":2},{\"hex\":\"0158\",\"expected\":3},{\"hex\":\"015841\",\"expected\":3},{\"hex\":\"004142\",\"expected\":4},{\"hex\":\"02414200\",\"expected\":4},{\"hex\":\"01414100\",\"expected\":4},{\"hex\":\"014142\",\"expected\":5},{\"hex\":\"02414243\",\"expected\":5},{\"hex\":\"034142434445\",\"expected\":5},{\"hex\":\"015942\",\"expected\":5},{\"hex\":\"00\",\"expected\":4},{\"hex\":\"024142\",\"expected\":2},{\"hex\":\"01580000\",\"expected\":4}],\"contract\":\"buf must point to readable memory of at least len bytes or be NULL only if len is zero. len accurately reflects buffer size. No concurrent modification.\",\"sanitizer_notes\":\"ASan detects out-of-bounds reads. UBSan catches unsigned overflow. Cannot detect logic errors or missing bounds checks that remain in-bounds.\"}"
+      }
+    ]
+  }
+]

@@ -3,7 +3,7 @@ import { mkdir, readFile, writeFile, readdir, open, unlink } from 'node:fs/promi
 import { resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
-import { fixtures, root, hash, measure, validateAnswer } from './benchmark-core.mjs';
+import { fixtures, root, hash, measure, parseModelAnswer, conservativeRequestBound } from './benchmark-core.mjs';
 import { updateLedger } from './cost-ledger.mjs';
 const out=resolve(root,'artifacts/benchmark');
 const archives=resolve(root,'artifacts/analyses');
@@ -24,19 +24,22 @@ if(mode==='--oracle') {
     const r=JSON.parse(await readFile(resolve(archives,file),'utf8'));if(r.study!=='defensive-path-pilot-v1')continue;
     const result={request:file,fixture:r.fixture,model:r.model,sourceSha256:r.sourceSha256,promptSha256:r.promptSha256,costUSD:r.usage?.cost,complete:complete(r),success:false};
     if(complete(r)) {
-      let answer;
-      try { answer=JSON.parse(r.content[0].text);validateAnswer(answer); }
-      catch(e){result.validationError=e.message;results.push(result);continue;}
+      let parsed;
+      try {parsed=parseModelAnswer(r.content[0].text);}
+      catch(error){result.strictFormat=false;result.validationError=error.message;results.push(result);continue;}
+      const {answer,...format}=parsed;Object.assign(result,format);
       const source=await readFile(resolve(root,fixtures[r.fixture].source));
       if(hash(source)!==r.sourceSha256)throw Error('Source changed since request');
       // Tool failures deliberately propagate; they are not model failures.
       const measured=await measure(r.fixture,answer.tests,resolve(out,'measured',file.replace('.json','')));
       Object.assign(result,measured,{entryPoints:answer.entry_points,contract:answer.contract,sanitizerNotes:answer.sanitizer_notes});
-      result.success=measured.allPredictionsCorrect&&measured.fullBranchCoverage;
+      result.uniqueInputs=new Set(answer.tests.map(t=>t.hex.toLowerCase())).size===answer.tests.length;
+      result.semanticSuccess=measured.allPredictionsCorrect&&measured.fullBranchCoverage;
+      result.success=result.strictFormat&&result.uniqueInputs&&result.semanticSuccess;
     }
     results.push(result);
   }
-  const grouped={};for(const r of results){const g=grouped[r.model]??={tasks:0,successes:0,costUSD:0};g.tasks++;g.successes+=Number(r.success);g.costUSD=Number((g.costUSD+(r.costUSD??0)).toFixed(12));}
+  const grouped={};for(const r of results){const g=grouped[r.model]??={tasks:0,successes:0,semanticSuccesses:0,correctPredictions:0,predictions:0,costUSD:0};g.tasks++;g.successes+=Number(r.success);g.semanticSuccesses+=Number(r.semanticSuccess??false);g.correctPredictions+=r.correctCount??0;g.predictions+=r.testCount??0;g.costUSD=Number((g.costUSD+(r.costUSD??0)).toFixed(12));}
   await writeFile(resolve(out,'scores.json'),JSON.stringify({capturedAt:new Date().toISOString(),results,grouped,limitations:'One sample per model/fixture. Branch completeness and expected outputs only; prose reviewed separately. No general equivalence inference.'},null,2)+'\n');
   console.log(JSON.stringify(grouped));
 } else if(mode==='--request') {
@@ -69,9 +72,7 @@ if(mode==='--oracle') {
     const response=await fetch('https://openrouter.ai/api/v1/models',{signal:AbortSignal.timeout(15000)});
     if(!response.ok)throw Error('Catalog preflight failed');const catalog=await response.json();
     const info=catalog.data.find(m=>m.id===model);if(!info)throw Error('Model unavailable');
-    const inputPrice=Number(info.pricing.prompt),outputPrice=Number(info.pricing.completion);
-    if(!Number.isFinite(inputPrice)||!Number.isFinite(outputPrice)||inputPrice<0||outputPrice<0)throw Error('Unknown pricing');
-    const bound=(Buffer.byteLength(prompt)+1024)*inputPrice+1000*outputPrice;
+    const bound=conservativeRequestBound(prompt,info.pricing,1000);
     if(ledger.reportedCostUSD+bound>0.50)throw Error('Conservative cumulative pilot ceiling would be exceeded');
     Object.assign(record,{status:'started',catalog:{id:info.id,pricing:info.pricing},conservativeRequestBoundUSD:bound,priorReportedSpendUSD:ledger.reportedCostUSD,startedAt:new Date().toISOString()});
     await writeFile(path,JSON.stringify(record,null,2)+'\n');

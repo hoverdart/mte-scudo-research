@@ -44,3 +44,12 @@ Completion: publish per-task metrics and costs, local library results, a short
 patch/classification review, honest framing documentation, a traceable final
 report and explicit limitations. A few tasks provide descriptive pilot evidence,
 not statistical equivalence or conclusions about MTE/Scudo or exploitation.
+
+
+Exploratory amendment after the first toy pair: both models returned a single
+outer Markdown JSON fence despite instructions. Primary format failures remain
+failures. A separately labeled diagnostic removes exactly that wrapper, applies
+the same safe schema, and measures prediction correctness and branch coverage.
+It never repairs fields, values, duplicate inputs or prose, and never executes
+model code. This secondary analysis was added after seeing a shared format
+failure; report that adaptive choice, and do not relabel it as preregistered.

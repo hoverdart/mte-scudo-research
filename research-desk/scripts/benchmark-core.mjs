@@ -12,9 +12,23 @@ export const fixtures = {
 export const hash = x => createHash('sha256').update(x).digest('hex');
 export function validateAnswer(value) {
   if (!value || typeof value !== 'object' || !Array.isArray(value.tests) || value.tests.length < 1 || value.tests.length > 16) throw Error('Expected 1..16 tests');
-  for (const t of value.tests) if (!t || typeof t.hex !== 'string' || !/^(?:[a-fA-F0-9]{2}){0,8}$/.test(t.hex) || !Number.isInteger(t.expected) || t.expected < 0 || t.expected > 9) throw Error('Invalid bounded hex input or expected result');
+  for (const t of value.tests) if (!t || typeof t.hex !== 'string' || (t.hex.length > 16 || t.hex.length % 2 !== 0 || /[^a-fA-F0-9]/.test(t.hex)) || !Number.isInteger(t.expected) || t.expected < 0 || t.expected > 9) throw Error('Invalid bounded hex input or expected result');
   if (!Array.isArray(value.entry_points) || value.entry_points.some(x=>typeof x !== 'string') || typeof value.contract !== 'string' || typeof value.sanitizer_notes !== 'string') throw Error('Missing analysis fields');
   return value.tests;
+}
+export function parseModelAnswer(text) {
+  try { const answer=JSON.parse(text);validateAnswer(answer);return {answer,strictFormat:true}; }
+  catch(error) {
+    const match=text.trim().match(/^```json\s*\n([\s\S]*?)\n```$/);
+    if(!match)throw error;
+    const answer=JSON.parse(match[1]);validateAnswer(answer);
+    return {answer,strictFormat:false,validationError:error.message,secondaryFenceRemoval:true};
+  }
+}
+export function conservativeRequestBound(prompt, pricing, maxTokens=1000) {
+  const input=Number(pricing?.prompt),output=Number(pricing?.completion);
+  if(!Number.isFinite(input)||!Number.isFinite(output)||input<0||output<0||!Number.isInteger(maxTokens)||maxTokens<1||maxTokens>1000)throw Error('Unknown pricing or invalid token cap');
+  return (Buffer.byteLength(prompt)+1024)*input+maxTokens*output;
 }
 export async function measure(name, tests, directory) {
   if (!fixtures[name]) throw Error('Unknown fixture');

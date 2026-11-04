@@ -44,20 +44,35 @@ try {
   run('clang', ['-g', '-O0', '-Wall', '-Wextra', '-Werror', '-fsanitize=address,undefined', '-fno-sanitize-recover=all', '-I', resolve(source, 'include'), '-I', resolve(build, 'include'), 'fixtures/dav1d_smoke.c', '-L', resolve(build, 'src'), '-ldav1d', `-Wl,-rpath,${resolve(build, 'src')}`, '-o', binary]);
   run(binary, []);
   run('ffmpeg', ['-version']);
-  const media = resolve(out, 'black-64x64.ivf');
-  run('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', '-f', 'lavfi', '-i', 'color=c=black:s=64x64:r=1', '-frames:v', '1', '-pix_fmt', 'yuv420p', '-c:v', 'libsvtav1', '-preset', '12', '-crf', '30', '-svtav1-params', 'lp=1', '-f', 'ivf', media]);
-  hashes['generated:black-64x64.ivf'] = createHash('sha256').update(await readFile(media)).digest('hex');
-  const decoded = resolve(out, 'black-64x64.yuv');
-  run(resolve(build, 'tools/dav1d'), ['--input', media, '--output', decoded, '--muxer', 'yuv', '--threads', '1', '--framedelay', '1']);
-  const pixels = await readFile(decoded);
-  if (pixels.length !== 64 * 64 * 3 / 2) throw Error('Expected exactly one 64x64 YUV420 frame');
-  for (let i = 0; i < pixels.length; i++) {
-    const expected = i < 64 * 64 ? 16 : 128;
-    if (Math.abs(pixels[i] - expected) > 1) throw Error('Black-frame pixel regression');
+  const mediaResults = [];
+  for (const depth of [8, 10]) for (const [width, height] of [[64,64],[96,64]]) for (const frames of [1,3]) {
+    const id = `black-${width}x${height}-${depth}bit-${frames}frames`;
+    const media = resolve(out, `${id}.ivf`);
+    run('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', '-f', 'lavfi', '-i', `color=c=black:s=${width}x${height}:r=1`, '-frames:v', String(frames), '-pix_fmt', depth === 8 ? 'yuv420p' : 'yuv420p10le', '-c:v', 'libsvtav1', '-preset', '12', '-crf', '30', '-svtav1-params', 'lp=1', '-f', 'ivf', media]);
+    const inputSha256 = createHash('sha256').update(await readFile(media)).digest('hex');
+    hashes[`generated:${id}.ivf`] = inputSha256;
+    const outputHashes = [];
+    for (let repeat = 0; repeat < 2; repeat++) {
+      const decoded = resolve(out, `${id}-${repeat}.yuv`);
+      run(resolve(build, 'tools/dav1d'), ['--input', media, '--output', decoded, '--muxer', 'yuv', '--threads', '1', '--framedelay', '1']);
+      const pixels = await readFile(decoded);
+      const bytesPerSample = depth === 8 ? 1 : 2;
+      const samplesPerFrame = width * height * 3 / 2;
+      if (pixels.length !== samplesPerFrame * frames * bytesPerSample) throw Error(`Unexpected decoded size: ${id}`);
+      for (let i = 0; i < pixels.length / bytesPerSample; i++) {
+        const expected = (i % samplesPerFrame < width * height ? 16 : 128) * (depth === 8 ? 1 : 4);
+        const actual = depth === 8 ? pixels[i] : pixels.readUInt16LE(i * 2);
+        if (Math.abs(actual - expected) > (depth === 8 ? 1 : 4)) throw Error(`Black-frame pixel regression: ${id}`);
+      }
+      outputHashes.push(createHash('sha256').update(pixels).digest('hex'));
+    }
+    if (outputHashes[0] !== outputHashes[1]) throw Error(`Nondeterministic decoded output: ${id}`);
+    hashes[`decoded:${id}.yuv`] = outputHashes[0];
+    mediaResults.push({ id, depth, width, height, frames, inputSha256, outputSha256: outputHashes[0], repeats: 2, expectedBytes: width * height * 3 / 2 * frames * (depth === 8 ? 1 : 2), passed: true });
   }
-  hashes['decoded:black-64x64.yuv'] = createHash('sha256').update(pixels).digest('hex');
+  await writeFile(resolve(out, 'media-results.json'), JSON.stringify(mediaResults, null, 2) + '\n');
   passed = true;
 } catch (e) { error = e.message; process.exitCode = 1; }
-await writeFile(resolve(out, 'record.json'), JSON.stringify({ capturedAt: new Date().toISOString(), passed, error, upstream: 'https://github.com/videolan/dav1d', revision, pinned, sourceAndInputHashes: hashes, input: 'Fixed empty decoder lifecycle plus one generated 64x64 black AV1 frame; generation command and hashes recorded.', sanitizerSettings: settings, limits: { jobs: 2, testProcesses: 1, stepTimeoutMs: 120000 }, steps, limitations: 'One ordinary generated frame only; no public crash corpus, assembly, MTE or Scudo claims.' }, null, 2) + '\n');
+await writeFile(resolve(out, 'record.json'), JSON.stringify({ capturedAt: new Date().toISOString(), passed, error, upstream: 'https://github.com/videolan/dav1d', revision, pinned, sourceAndInputHashes: hashes, input: 'Fixed empty decoder lifecycle plus eight generated ordinary black AV1 clips; generation commands and hashes recorded.', sanitizerSettings: settings, limits: { jobs: 2, testProcesses: 1, stepTimeoutMs: 120000 }, steps, limitations: 'Eight ordinary generated black clips across depth/size/frame count, decoded twice each; no public crash corpus, assembly, MTE or Scudo claims.' }, null, 2) + '\n');
 await writeFile(resolve(out, 'run.log'), steps.map(s => `${s.command} ${s.args.join(' ')}\nexit=${s.status} signal=${s.signal}\n${s.stdout}${s.stderr}`).join('\n'));
 console.log(`dav1d: ${passed ? 'PASS' : 'FAIL'}; artifacts/upstream/record.json`);

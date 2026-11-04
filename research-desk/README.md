@@ -69,3 +69,12 @@ VERCEL_PASS=local-verification-password node scripts/dev-vercel.mjs
 ```
 
 This runs at http://127.0.0.1:4318. The password preview and every hosted origin have separate browser storage. Before moving from the ChatGPT Sites address, export a full backup there, then restore it on the Vercel address. The older Sites copy remains private until it is deliberately retired.
+
+## Defensive research experiments
+
+The local harness and completed measured pilot are documented in
+[the results report](docs/results/REPORT.md), [reproduction guide](docs/REPRODUCE.md),
+and [study protocol](docs/STUDY_PROTOCOL.md). They cover safe C branch tests,
+model prediction scoring, ordinary native Skia/dav1d tests and cumulative model
+costs. `npm run study:restore`, `npm run benchmark:score` and `npm run costs`
+replay/report saved model evidence without making paid requests.
