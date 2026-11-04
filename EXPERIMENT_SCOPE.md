@@ -225,3 +225,12 @@ preconditions and explicit limits on unmeasured claims. This keeps the existing
 output ceiling while reducing verbose generated test code. Version and prompt
 hash are recorded; changed prompts are separate experiments, not matched model
 comparisons. Offline tests also verify truncation is preserved and fails closed.
+
+## Cumulative cost ledger
+
+`npm run costs` rebuilds `artifacts/cost-ledger.json` from unique archived
+requests. The analysis command also refreshes it after each attempt. It includes
+billed truncated responses and reports unknown costs explicitly instead of
+counting them as free. It uses provider-reported `usage.cost` in USD; it does not
+include other users of the key, credit-purchase fees, or requests outside this
+harness. It is an accounting record, not a spending-limit enforcement mechanism.

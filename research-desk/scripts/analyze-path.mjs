@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import fs from 'node:fs/promises';
+import { updateLedger } from './cost-ledger.mjs';
 import { createHash, randomUUID } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 
@@ -109,6 +110,8 @@ try {
   console.error('Request or response processing failed; inspect saved evidence before another call. No retry performed.');
   process.exitCode = 1;
 } finally {
+  try { await updateLedger(); }
+  catch { console.error('Cost ledger update failed; review archived usage before another request.'); process.exitCode = 1; }
   await lock.close();
   await fs.unlink('artifacts/analysis.lock');
 }
