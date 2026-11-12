@@ -44,8 +44,18 @@ def build():
             "sourceName": path.name, "file": f"sources/{slug}.pdf", "fileType": "application/pdf",
             "fingerprint": hashlib.sha256(path.read_bytes()).hexdigest(), "seed": True,
         })
+    # Retain non-PDF seeds, including completed study records and the research hub.
+    previous = json.loads((DEST / "library.json").read_text()) if (DEST / "library.json").exists() else []
+    previous_by_id = {record["id"]: record for record in previous}
+    for record in records:
+        # Repository-authored annotations on PDF seeds are independent of extraction.
+        old = previous_by_id.get(record["id"], {})
+        if old.get("body"):
+            record["body"] = old["body"]
+    pdf_ids = {record["id"] for record in records}
+    records.extend(record for record in previous if record["id"] not in pdf_ids and not record["id"].startswith("source-"))
     (DEST / "library.json").write_text(json.dumps(records, ensure_ascii=False, indent=2) + "\n")
-    print(f"Indexed {len(records)} PDFs / {sum(len(r['pages']) for r in records)} pages")
+    print(f"Indexed {len(records)} PDFs / {sum(len(r.get('pages', [])) for r in records)} pages")
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-# Research Desk
+# Marius Research Hub
 <!-- impeccable:product-schema 1 -->
 
 ## Platform
@@ -8,7 +8,7 @@ web
 delegated: the user trusts implementation choices. A dependency-light static app with browser-local records, portable backups, and a repeatable PDF indexing script. The user confirmed browser-local storage with export/import backups.
 
 ## Users
-A researcher taking continuous notes about LLMs, MTE, and Scudo, retrieving material during meetings and review.
+A researcher taking continuous notes with Marius Momeu about MTE/Scudo, LLM evaluation, unsafe Rust, FFI, Crustify, and formal verification, retrieving material during meetings and review.
 
 ## Product Purpose
 Make the existing research and new information searchable, organized by date and topic, with a meeting shortlist and direct access to original documents.

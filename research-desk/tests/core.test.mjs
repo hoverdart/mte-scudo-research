@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {matches,matchingPage,highlight,sortEntries,validateBackup,validateRecord,markdownBrief,validDate} from '../dist/core.mjs';
-const library=JSON.parse(await readFile(new URL('../dist/library.json',import.meta.url)));
+const library=JSON.parse(await readFile(new URL('../dist/library.json',import.meta.url))).filter(r=>r.id.startsWith('source-'));
 test('all eight originals and all 73 pages are indexed and attributed',()=>{assert.equal(library.length,8);assert.equal(library.reduce((n,r)=>n+r.pages.length,0),73);library.forEach(r=>{assert.equal(validateRecord(r),r);assert.ok(r.sourceName);});assert.equal(library.filter(r=>r.date).length,1);assert.equal(library.find(r=>r.date).date,'2026-10-06');});
 test('full-text search finds technical text inside pages, with combined topic and type filters',()=>{const r=library.find(r=>r.id==='source-scudo-mte-t4');assert.ok(matches(r,{query:'ScopedDisableMemoryTagChecks IRG',topic:'MTE',kind:'Research note'}));assert.ok(matchingPage(r,'ScopedDisableMemoryTagChecks')>=0);assert.equal(matches(r,{query:'impossible-word-4379'}),false);assert.equal(matches(r,{topic:'Targets'}),false);});
 test('search highlights literal punctuation and safely escapes HTML',()=>{assert.equal(highlight('<script> C++ [x]','C++ [x]'),'&lt;script&gt; <mark>C++</mark> <mark>[x]</mark>');assert.equal(highlight('a.* a','a.*'),'<mark>a.*</mark> a');});

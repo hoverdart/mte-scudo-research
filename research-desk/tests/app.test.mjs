@@ -15,7 +15,11 @@ await import('../dist/app.mjs');
 const tick=()=>new Promise(r=>setTimeout(r,30));
 const click=s=>w.document.querySelector(s).click();
 test('app loads sources, searches pages, saves and edits a note, and persists a meeting selection',async()=>{
- assert.equal(document.querySelectorAll('.entry').length,8);
+ assert.equal(document.querySelectorAll('.entry').length,14);
+ assert.equal(document.querySelector('#reader h2').textContent,'Research with Marius');
+ click('a[href="#entry=crustify-meeting-avenues"]');
+ assert.equal(document.querySelector('#reader h2').textContent,'Meeting notes on the two research avenues');
+ click('[data-id=source-plan]');
  assert.equal(document.querySelector('#reader h2').textContent,'The research plan');
  assert.equal(document.querySelector('summary a'),null);assert.ok(document.querySelector('.page-actions a'));
  assert.ok(document.querySelector('.page-text h3'));assert.ok(document.querySelector('.page-text strong'));assert.ok(document.querySelector('.page-text table'));

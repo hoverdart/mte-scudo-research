@@ -8,7 +8,7 @@ const {renderBlocks,renderMarkdown,renderPlainText}=await import('../dist/format
 const library=JSON.parse(await readFile(new URL('../dist/library.json',import.meta.url)));
 const dom=html=>{const e=w.document.createElement('div');e.innerHTML=html;return e;};
 test('all 73 source pages have formatted content with real headings, emphasis, lists and tables',()=>{
- for(const r of library){validatePageBlocks(r.pageBlocks,r.pages.length);assert.equal(r.pageBlocks.length,r.pages.length);for(const blocks of r.pageBlocks)assert.ok(blocks.length,`${r.title} has an empty page`);}
+ for(const r of library.filter(r=>r.id.startsWith('source-'))){validatePageBlocks(r.pageBlocks,r.pages.length);assert.equal(r.pageBlocks.length,r.pages.length);for(const blocks of r.pageBlocks)assert.ok(blocks.length,`${r.title} has an empty page`);}
  const plan=library.find(r=>r.id==='source-plan');
  const first=dom(renderBlocks(plan.pageBlocks[0]));assert.equal(first.querySelector('h3').textContent,'The Refined Plan');assert.match(first.querySelector('strong').textContent,/one question/);assert.equal(first.querySelectorAll('table tr').length,8);assert.match(first.querySelector('table').textContent,/Oracle \/ success-checker/);
  const second=dom(renderBlocks(plan.pageBlocks[1]));assert.equal(second.querySelectorAll('ul').length,2);assert.equal(second.querySelectorAll('li').length,6);assert.match(second.textContent,/use-after-free/);assert.ok(second.querySelector('h4'));

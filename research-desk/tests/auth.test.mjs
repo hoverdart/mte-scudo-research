@@ -31,7 +31,7 @@ test('successful login sets a secure HTTP-only 24-hour cookie and unlocks exact 
  const response=await login();assert.equal(response.status,303);assert.equal(response.headers.get('location'),origin+'/');const cookie=response.headers.get('set-cookie');assert.match(cookie,/HttpOnly/);assert.match(cookie,/Secure/);assert.match(cookie,/Max-Age=86400/);assert.match(cookie,/SameSite=Lax/);
  const next=request('/sources/plan.pdf',{headers:{cookie:cookie.split(';')[0]}});assert.equal(allowedSession(next,env),true);
  const pdf=await handleRequest(next,env);assert.equal(pdf.status,200);assert.match(pdf.headers.get('cache-control'),/private, no-store/);assert.deepEqual(Buffer.from(await pdf.arrayBuffer()),await readFile(new URL('../dist/sources/plan.pdf',import.meta.url)));
- const library=await handleRequest(authenticatedRequest('/api/index?resource=library.json'),env);assert.equal(library.status,200);assert.equal((await library.json()).length,8);
+ const library=await handleRequest(authenticatedRequest('/api/index?resource=library.json'),env);assert.equal(library.status,200);assert.equal((await library.json()).length,14);
 });
 test('incorrect password, missing CSRF token and cross-origin login are rejected',async()=>{
  const wrong=await login('incorrect');assert.equal(wrong.status,303);assert.match(wrong.headers.get('location'),/error=incorrect/);assert.equal(wrong.headers.get('set-cookie'),null);

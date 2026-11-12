@@ -1,6 +1,6 @@
-# MTE / Scudo Research Desk
+# Marius Research Hub
 
-A personal library seeded with all eight supplied PDFs (73 pages). Browse by topic or authored date, search full document text, write notes, and save material for meetings.
+A general research hub for work with Marius Momeu: the original eight MTE/Scudo PDFs (73 pages), Crustify, unsafe Rust, FFI, and checked proof research. Browse by topic or authored date, search full document text, write notes, and save material for meetings.
 
 ## Open locally
 
@@ -81,3 +81,10 @@ replay/report saved model evidence without making paid requests.
 
 For general prompts, code-only responses and named text-file bundles, use
 `npm run prompt -- --help`; see [PROMPT_RUNNER.md](docs/PROMPT_RUNNER.md).
+
+
+## Research hub additions
+
+The November 12 expansion adds an orientation note, the original meeting notes with separately labeled technical clarifications, a Crustify brief, a linked reading map, a proposed first experiment, and the full 15-page beginner guide (searchable with a protected PDF download). Edit the Markdown bodies in `docs/crustify/` and run `npm run hub:refresh`. Metadata is in `docs/crustify/notes.json`; the refresh script takes the body from each Markdown file.
+
+The repository directory, deployed origin, IndexedDB name, backup format, source IDs, and existing browser-local records remain unchanged. Do not rename those storage identities merely to match the visible hub title. PDF indexing preserves non-PDF seeds; the hub refresh is idempotent and leaves unrelated seeds untouched. Existing local edits to a seed continue to take precedence.

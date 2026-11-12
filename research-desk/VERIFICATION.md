@@ -47,3 +47,28 @@ The reader now uses PDF logical structure and embedded font metadata, preserving
 - Vercel production deployment succeeded at https://mte-scudo-research.vercel.app (deployment `dpl_2i9XQcUdNE5qW8gS1j13dRQMDjWd`). Anonymous checks: login page 200, session endpoint reports false, source index and PDF endpoints 401, direct resource API 401, and `/dist/library.json` 404. At this verification the Production environment did not yet contain `VERCEL_PASS`, so the site correctly reported `configured: false`. A deployment after the user sets the variable is still required.
 
 - After the user set `VERCEL_PASS`, production was redeployed successfully as `dpl_HLiybLb2PwVfq7BSLYw5BcRMMZtm` at the same production URL. Live checks confirm `configured: true`, a working CSRF endpoint and cookie, and an unauthenticated session. The source index, original PDF, and direct resource API each return 401 with `private, no-store`; `/dist/library.json` returns 404. The actual production password was neither read nor entered; successful login and the exact 24-hour session lifetime were verified locally with a disposable password.
+
+## Marius Research Hub expansion — November 12, 2026
+
+- Expanded the visible hub name and topics without changing the deployed origin, database/broadcast names, backup format, or original source IDs.
+- Added five curated entries: orientation, supplied meeting notes with separate clarifications, Crustify brief, reading map, and first-experiment plan.
+- All eight original PDFs and 73 indexed pages remain present; the existing Tasks annotations are retained.
+- `npm test`: 49 passing tests, including original-source coverage, storage/backup roundtrips, password protection, hub note attribution, and overview-link navigation through the app.
+- `npm run check`, `node --check scripts/refresh-hub.mjs`, Python indexer syntax check, and `npm run build:vercel` pass.
+- Repeated `npm run hub:refresh` produces an identical library. The indexer preserves non-PDF seed entries and repository-authored PDF body annotations.
+- Browser screenshot QA was unavailable because no supported browser surfaces were exposed. DOM-level application tests ran; this is not a claim of fresh desktop/mobile visual inspection.
+- This verification records local changes; production deployment status must be checked separately.
+
+### Production publication
+
+Published the requested hub update to the existing `https://mte-scudo-research.vercel.app` alias. Vercel reported READY for deployment `dpl_FVKErrPyHvLfhbKSJRjeYbdUD5wM`. Used an isolated staging directory based on the previous deployment's source inventory and library, not the dirty working tree. SHA1 comparison confirmed unchanged runtime/auth assets; only intended UI edits and five new notes were overlaid. All eight previously deployed records were retained byte-equivalently as JSON objects. Unrelated local temporal-experiment changes and local-only Tasks annotations were not published and remain in the checkout.
+
+Live HTTP checks: `/` and `/login.html` show Marius branding (200), `/api/config` reports configured, and unauthenticated `/library.json`, `/sources/plan.pdf`, and the direct function library route return 401. Deployed library/app/auth source hashes match the isolated build. Successful authenticated browser rendering was not freshly inspected because no browser surface was available; authentication behavior is covered by local integration tests.
+
+### Beginner guide integration and isolated commit verification
+
+Added the completed 15-page beginner guide as a searchable Study guide entry with an authenticated original-PDF link, plus the editable DOCX source in `docs/crustify/`. The hub now has six new research entries and nine PDFs including the eight originals. The original guide artifacts were visually reviewed during document production.
+
+The exact staged repository snapshot passed all 49 tests, syntax checks, and the Vercel build from a clean isolated verification directory. The instrumentation check needed a canonical physical working-directory path on macOS (`/private/tmp`, rather than its `/tmp` symlink); it passed after that environment correction without source changes. Hub refresh preserves formatted pages for the unchanged guide fingerprint.
+
+Published guide deployment `dpl_7k8CUiuDZksTq2vxHcEA6DpV1EA5` is READY on the existing alias. Its PDF, library, and unchanged authentication-source hashes match the isolated deployment bundle. Unauthenticated library and guide-PDF requests return 401. No browser-local user records were migrated or cleared.

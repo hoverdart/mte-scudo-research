@@ -1,5 +1,5 @@
 import {validatePageBlocks} from './pdf-structure.mjs';
-export const TOPICS = ['MTE', 'Scudo', 'LLM evaluation', 'Targets', 'Literature', 'PAC & BTI', 'Research design', 'Meetings', 'Unsorted'];
+export const TOPICS = ['Research hub', 'Crustify', 'Unsafe Rust', 'FFI', 'Formal verification', 'Static analysis', 'MTE', 'Scudo', 'LLM evaluation', 'Targets', 'Literature', 'PAC & BTI', 'Research design', 'Meetings', 'Unsorted'];
 export const KINDS = ['Note', 'Question', 'Finding', 'Meeting', 'Experiment', 'Reading note', 'Research note', 'Plan', 'Tasks', 'Study guide', 'Document'];
 export const escapeHtml = (s = '') => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function terms(query) { return query.toLocaleLowerCase().trim().split(/\s+/).filter(Boolean); }
@@ -48,5 +48,5 @@ export function validateBackup(data) {
   return data;
 }
 export function markdownBrief(records) {
-  return '# MTE / Scudo — Meeting brief\n\n' + records.map(r=>`## ${r.title}\n\n${r.kind} · ${r.topics.join(', ')} · ${r.date || 'Undated'}\n\n${r.summary || ''}\n\n${r.body || ''}${r.sourceName ? '\n\nSource: '+r.sourceName : ''}`).join('\n\n---\n\n') + '\n';
+  return '# Marius Research Hub — Meeting brief\n\n' + records.map(r=>`## ${r.title}\n\n${r.kind} · ${r.topics.join(', ')} · ${r.date || 'Undated'}\n\n${r.summary || ''}\n\n${r.body || ''}${r.sourceName ? '\n\nSource: '+r.sourceName : ''}`).join('\n\n---\n\n') + '\n';
 }
