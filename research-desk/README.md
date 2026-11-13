@@ -58,9 +58,11 @@ PDF.js 6.4.299 is vendored under `dist/vendor/`, with its Apache 2.0 license. Fo
 
 The Vercel variant uses a single password stored in the Production environment variable `VERCEL_PASS`. There is no Google OAuth or ChatGPT sign-in in this variant. A successful password login sets a signed, HTTP-only session cookie that expires exactly 24 hours later; reads do not extend it. Changing the password invalidates existing cookies after redeploying.
 
-From `research-desk`, use `npm run build:vercel` to prepare the static shell. The build excludes `library.json` and original PDFs from the public directory; an authenticated Vercel function serves them. `vercel deploy --prod --scope syntaxx` publishes the linked project. Set `VERCEL_PASS` in Vercel Project Settings > Environment Variables for Production, then redeploy to apply it. The site stays locked if the variable is absent. Never put the actual password in source, a build argument, or chat.
+From `research-desk`, use `npm run build:vercel` to prepare the static shell. The build excludes `library.json` and original PDFs from the public directory; an authenticated Vercel function serves them. Set `VERCEL_PASS` in Vercel Project Settings > Environment Variables for Production, then redeploy to apply it. The site stays locked if the variable is absent. Never put the actual password in source, a build argument, or chat.
 
-The linked project is `syntaxx/mte-scudo-research`. CLI deployments use `research-desk` as the project root. If enabling deployments from Git commits later, configure the Git project's Root Directory to `research-desk`; the CLI-created project initially reports `.`.
+The linked project is `syntaxx/mte-scudo-research`, with Vercel **Root Directory set to `research-desk`**. Git production deployments run from that directory and read its `package.json` and `vercel.json`. Keep this setting: running the build from the repository root fails because there is no root `package.json`.
+
+Prefer the connected Git deployment after pushing reviewed changes to `main`. For a manual CLI deployment, submit the repository root linked to this same Vercel project, so Vercel can resolve its configured `research-desk` subdirectory. Do not submit `research-desk` alone now that the project has a configured Root Directory. Keep credentials and unreviewed local changes out of any upload; use a clean checkout when the working tree is dirty. Authentication, the production alias, and browser-local storage are unchanged by this build-root setting.
 
 Local password preview (use a disposable test password):
 
