@@ -4,6 +4,10 @@
 
 This hub brings together the original MTE/Scudo research and the newer unsafe Rust, FFI, and Crustify work with Marius Momeu. The older documents remain intact: their claims and task statuses are historical notes, not automatically current results.
 
+## November 15 update: selected CBox target
+
+Per Shaurya’s report, Marius selected ffibox’s single-object CBox with unique ownership. The [CBox source audit and executable model](#entry=crustify-cbox-initial) pins the source, maps methods to proof obligations, and records a small finite-model sanity check. This is not a proof of the Rust implementation. Earlier buffer proposals below remain historical alternatives, not the current selected target.
+
 ## Start here
 
 - [Understanding Rust and Crustify research](#entry=crustify-beginner-guide): the full beginner guide, worked examples, glossary, and call agenda.
@@ -18,7 +22,7 @@ This hub brings together the original MTE/Scudo research and the newer unsafe Ru
 
 **Unsafe Rust and FFI verification:** model particular failure modes, understand existing verified primitives, then investigate LLM-assisted construction of proofs checked independently. The November 4 discussion narrowed toward this proof-oriented direction, while static analysis remains an alternative avenue.
 
-## Decisions for the next meeting
+## Earlier open decisions (November 12)
 
 Choose one actual ffibox primitive and version, one precise safety claim, the C-effect contract, and the proof framework. Decide whether the first claim concerns bounds/initialization/ownership or operational aliasing; those are not interchangeable.
 

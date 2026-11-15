@@ -5,7 +5,7 @@ import {validateRecord,matches,TOPICS,markdownBrief} from '../dist/core.mjs';
 const library=JSON.parse(await readFile(new URL('../dist/library.json',import.meta.url),'utf8'));
 test('hub contains attributed notes and preserves original sources and annotations',()=>{
  const hub=library.filter(r=>r.id==='hub-overview'||r.id.startsWith('crustify-'));
- assert.equal(hub.length,6);hub.forEach(validateRecord);
+ assert.equal(hub.length,7);hub.forEach(validateRecord);
  assert.equal(library.filter(r=>r.id.startsWith('source-')).length,8);
  assert.equal(library.filter(r=>r.id.startsWith('source-')).reduce((n,r)=>n+r.pages.length,0),73);
 
@@ -14,6 +14,7 @@ test('hub contains attributed notes and preserves original sources and annotatio
  assert.match(meeting.body,/Original meeting notes/);assert.match(meeting.body,/Technical clarifications/);
  assert.ok(matches(meeting,{query:'forbid unsafe',topic:'Crustify'}));
  for(const topic of ['Crustify','Unsafe Rust','FFI','Formal verification','Static analysis'])assert.ok(TOPICS.includes(topic));
+ const cbox=hub.find(r=>r.id==='crustify-cbox-initial');assert.match(cbox.body,/not a proof of ffibox/);assert.match(cbox.body,/14 reachable states and 30 checked transitions/);
  const guide=hub.find(r=>r.id==='crustify-beginner-guide');assert.equal(guide.pages.length,15);assert.equal(guide.file,'sources/marius-research-guide.pdf');
  assert.match(markdownBrief(hub),/^# Marius Research Hub/);
 });

@@ -119,5 +119,22 @@
     ],
     "fingerprint": "08fa5b6fc5240f205d6264b695557658dacb0249c9fc5be217b58cf4e7b8e6f1",
     "markdownSource": "docs/crustify/crustify-beginner-guide.md"
+  },
+  {
+    "id": "crustify-cbox-initial",
+    "title": "CBox: initial source audit and executable model",
+    "kind": "Research note",
+    "topics": [
+      "Crustify",
+      "Unsafe Rust",
+      "FFI",
+      "Formal verification"
+    ],
+    "summary": "Selected single-object CBox target: pinned ffibox source audit, conditional ownership obligations, and an executable finite model with 14 states and 30 transitions. Three deliberate model mutants rejected. Not a proof of actual Rust or a bug finding.",
+    "body": "",
+    "date": "2026-11-15",
+    "dateBasis": "Source audit and finite abstract model checked November 15, 2026",
+    "sourceName": "docs/crustify/crustify-cbox-initial.md",
+    "seed": true
   }
 ]

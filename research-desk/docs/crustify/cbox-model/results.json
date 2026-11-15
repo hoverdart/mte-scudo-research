@@ -1,0 +1,70 @@
+{
+  "scope": "Finite abstract lifecycle check, NOT a proof or execution of ffibox Rust.\nOne allocation; <=2 shared handles; sequential, no unwinding/reentrancy.\nA CDrop invocation consumes the ownership claim, not necessarily the storage.\nUnsafe adoption/foreign operations must honor the modeled contracts.\n",
+  "controlsPassed": [
+    "shared_then_mutable_borrow",
+    "transfer_readopt_drop_once",
+    "forget_may_leak"
+  ],
+  "runs": [
+    {
+      "mutant": null,
+      "invariantHolds": true,
+      "statesVisited": 14,
+      "transitionsChecked": 30,
+      "counterexample": null
+    },
+    {
+      "mutant": "mutable_over_shared",
+      "invariantHolds": false,
+      "statesVisited": 8,
+      "transitionsChecked": 11,
+      "counterexample": [
+        "unsafe_adopt_with_unique_claim",
+        "as_ref",
+        "as_mut"
+      ],
+      "violatingState": {
+        "owner": "box",
+        "shared": 1,
+        "exclusive": true,
+        "dropCalls": 0,
+        "policy": 0
+      }
+    },
+    {
+      "mutant": "into_raw_runs_drop",
+      "invariantHolds": false,
+      "statesVisited": 4,
+      "transitionsChecked": 5,
+      "counterexample": [
+        "unsafe_adopt_with_unique_claim",
+        "into_raw_with_disarm"
+      ],
+      "violatingState": {
+        "owner": "external",
+        "shared": 0,
+        "exclusive": false,
+        "dropCalls": 1,
+        "policy": 0
+      }
+    },
+    {
+      "mutant": "drop_with_live_handle",
+      "invariantHolds": false,
+      "statesVisited": 8,
+      "transitionsChecked": 12,
+      "counterexample": [
+        "unsafe_adopt_with_unique_claim",
+        "as_ref",
+        "normal_drop_calls_policy"
+      ],
+      "violatingState": {
+        "owner": "released",
+        "shared": 1,
+        "exclusive": false,
+        "dropCalls": 1,
+        "policy": 0
+      }
+    }
+  ]
+}

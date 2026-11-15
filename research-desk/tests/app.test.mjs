@@ -15,7 +15,7 @@ await import('../dist/app.mjs');
 const tick=()=>new Promise(r=>setTimeout(r,30));
 const click=s=>w.document.querySelector(s).click();
 test('app loads sources, searches pages, saves and edits a note, and persists a meeting selection',async()=>{
- assert.equal(document.querySelectorAll('.entry').length,14);
+ assert.equal(document.querySelectorAll('.entry').length,15);
  assert.equal(document.querySelector('#reader h2').textContent,'Research with Marius');
  click('a[href="#entry=crustify-meeting-avenues"]');
  assert.equal(document.querySelector('#reader h2').textContent,'Meeting notes on the two research avenues');
