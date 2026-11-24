@@ -1,0 +1,21 @@
+# First source-proof milestone
+
+Pinned upstream: [ffibox 37ea234](https://github.com/crustify-rs/ffibox/commit/37ea234e1f765d6e1253563f111c97ab3b3e9bc8). This is newer than the source pin in the November 15 finite-model note. The [manifest](https://github.com/crustify-rs/ffibox/blob/37ea234e1f765d6e1253563f111c97ab3b3e9bc8/Cargo.toml) declares Rust 1.100. Do not assume the compiler nightly bundled in a paper artifact accepts the crate.
+
+## Specification, one concrete policy
+
+Start with a fixed initialized sized layout type and one zero-sized policy with no Rust Drop effects. Precondition: caller owns the unique foreign teardown capability for non-null pointer p; memory is live, initialized, aligned and valid at p; no concurrent uses, reentrancy or unwinding. The abstract destructor takes the compatible foreign ownership and consumes it. Treat that contract as an assumption, not a proof of foreign code.
+
+1. [Adoption, refs.rs L387–415](https://github.com/crustify-rs/ffibox/blob/37ea234e1f765d6e1253563f111c97ab3b3e9bc8/src/refs.rs#L387-L415): non-null adoption moves the capability into CBox. A separate null lemma returns None, creates no owner and makes no foreign teardown call.
+2. [Consuming transfer, L445–464](https://github.com/crustify-rs/ffibox/blob/37ea234e1f765d6e1253563f111c97ab3b3e9bc8/src/refs.rs#L445-L464): first discriminating lemma. Preserve pointer identity and return the policy and exact exclusive capability, with zero calls to CDrop::c_drop. Verify the disarm/ManuallyDrop path and the policy ptr::read, not just a model that assumes them.
+3. [Normal drop, L717–722](https://github.com/crustify-rs/ffibox/blob/37ea234e1f765d6e1253563f111c97ab3b3e9bc8/src/refs.rs#L717-L722): invoke the matching policy with p and consume the resource. This is not a guarantee about forgetting or foreign implementations. As a composition check, transfer, readopt and normal drop calls teardown once.
+
+Keep borrowed handles, representation/transmute, change of policy and generic destructor side effects out of this first source theorem. The SMT model includes idealized borrow steps only to test the proposed invariant, not to claim those features are verified.
+
+## Which framework and why
+
+- **RefinedRust 2 first for the unchanged executable Rust.** The [paper](https://iris-project.org/pdfs/2026-oopsla-refinedrust2.pdf) and [authors' artifact](https://zenodo.org/records/21636474) include IBM ACE's Page capability, a close example of wrapping raw storage with unique ownership. Its Rust frontend and its source-to-Radium correspondence are still part of the trust story. Run a published example first, then probe the concrete CBox specialization for NonNull, ManuallyDrop, ptr::read, closure handling and the CDrop shim. If the frontend cannot express a construct, record the exact blocker separately from a failed proof; do not replace executable behavior and call it the same theorem.
+- **Verus as the fallback for a proof-oriented port**, if a source proof stalls: [VerusBelt](https://iris-project.org/pdfs/2026-pldi-verusbelt.pdf) separates an executable pointer and a tracked PointsTo resource. It is an excellent design reference, not evidence that arbitrary existing unsafe Rust or Tree Borrows verification is automatic.
+- **Tas/Jacobs to refine later aliasing claims.** The [work-in-progress logic](https://arxiv.org/html/2603.28326v1) distinguishes permission and provenance from numerical address. Use it when bringing raw handles into scope; it is not the first verifier to install.
+
+Before annotating the production crate, use [check-source-tests.sh](check-source-tests.sh) against a clean pinned checkout with a compatible compiler. The script runs the upstream tests `owned_drop_calls_c_drop` and `owned_into_raw_suppresses_drop` ([test source](https://github.com/crustify-rs/ffibox/blob/37ea234e1f765d6e1253563f111c97ab3b3e9bc8/tests/smart_pointers.rs#L307-L353)). Then run the paper's known-good example, pin its compiler and Rocq versions, and capture the first translation or proof failure. An annotated extracted specialization gets an “extracted slice” label until its correspondence is established. Record trusted contracts and check for admitted lemmas. No RefinedRust example, ffibox test, or Rust source proof was run for this package.
