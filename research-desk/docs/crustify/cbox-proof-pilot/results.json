@@ -1,0 +1,98 @@
+{
+  "scope": "inductive SMT check of an abstract protocol; no Rust verification or LLM trials",
+  "z3": "Z3 4.13.3.0",
+  "checker_sha256": "7fff2e1560ffe1ff529f67ce83c77d988e477b04b610999b33c41aa2170fd80d",
+  "controls": {
+    "reference": {
+      "accepted": true,
+      "not_discharged": {},
+      "obligation_count": 23
+    },
+    "too_weak": {
+      "accepted": false,
+      "not_discharged": {
+        "implies_fixed_goal": "sat"
+      },
+      "obligation_count": 23
+    },
+    "impossible": {
+      "accepted": false,
+      "not_discharged": {
+        "init": "sat"
+      },
+      "obligation_count": 23
+    },
+    "overrestrictive": {
+      "accepted": false,
+      "not_discharged": {
+        "step:share": "sat"
+      },
+      "obligation_count": 23
+    },
+    "null_changes_state": {
+      "accepted": false,
+      "not_discharged": {
+        "null_preserves_state": "sat"
+      },
+      "obligation_count": 23
+    },
+    "duplicate_adoption_capability": {
+      "accepted": false,
+      "not_discharged": {
+        "step:adopt": "sat"
+      },
+      "obligation_count": 23
+    },
+    "overlap_mutable_and_shared": {
+      "accepted": false,
+      "not_discharged": {
+        "step:borrow_mut": "sat"
+      },
+      "obligation_count": 23
+    },
+    "destroy_on_transfer": {
+      "accepted": false,
+      "not_discharged": {
+        "step:transfer": "sat",
+        "callback_delta:transfer": "sat"
+      },
+      "obligation_count": 23
+    }
+  },
+  "scenarios": {
+    "null_from_external": [
+      {
+        "expected": "sat",
+        "actual": "sat"
+      },
+      {
+        "expected": "unsat",
+        "actual": "unsat"
+      }
+    ],
+    "adopt_export_is_not_drop": [
+      {
+        "expected": "sat",
+        "actual": "sat"
+      },
+      {
+        "expected": "unsat",
+        "actual": "unsat"
+      }
+    ],
+    "export_readopt_drop_calls_once": [
+      {
+        "expected": "sat",
+        "actual": "sat"
+      },
+      {
+        "expected": "unsat",
+        "actual": "unsat"
+      }
+    ]
+  },
+  "disabled_export_witness_control": {
+    "expected": "sat",
+    "actual": "unsat"
+  }
+}
